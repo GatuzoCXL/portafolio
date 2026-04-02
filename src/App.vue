@@ -7,6 +7,7 @@ import WindowTemplate from '@/components/os/WindowTemplate.vue'
 import AboutMe from '@/components/apps/AboutMe.vue'
 import Projects from '@/components/apps/Projects.vue'
 import Contact from '@/components/apps/Contact.vue'
+import GamesExplorer from '@/components/apps/GamesExplorer.vue'
 
 const windowsStore = useWindowsStore()
 
@@ -14,6 +15,7 @@ const appComponents = {
   AboutMe,
   Projects,
   Contact,
+  GamesExplorer,
 }
 </script>
 

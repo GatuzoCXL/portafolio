@@ -23,17 +23,22 @@ const desktopIcons = [
   {
     id: 'my-pc',
     label: 'Mi PC',
-    icon: '🖥️',
+    icon: '/icons/my-pc.svg',
   },
   {
     id: 'internet-explorer',
     label: 'Internet Explorer',
-    icon: '🌐',
+    icon: '/icons/internet-explorer.svg',
   },
   {
     id: 'messenger',
     label: 'MSN Messenger',
-    icon: '💬',
+    icon: '/icons/messenger.svg',
+  },
+  {
+    id: 'games-folder',
+    label: 'Juegos',
+    icon: '/icons/games-folder.svg',
   },
 ]
 
@@ -46,8 +51,7 @@ const handleIconDoubleClick = (windowId) => {
 .desktop {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0066cc 0%, #00ccff 100%);
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1920"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="%2300aaff"/><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+  background: url('/wallpapers/bliss.svg') center center / cover no-repeat;
   overflow: hidden;
   user-select: none;
 }

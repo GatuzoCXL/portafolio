@@ -1,18 +1,18 @@
 <template>
   <div class="about-me">
-    <div class="content-section">
+    <fieldset class="content-section">
       <h2>Sobre Mí</h2>
       <p>
         Soy un desarrollador apasionado con experiencia en tecnologías modernas
         y arquitectura de software. Me encanta crear soluciones escalables y
         user-friendly que resuelvan problemas reales.
       </p>
-    </div>
+    </fieldset>
 
-    <div class="content-section">
+    <fieldset class="content-section">
       <h3>Habilidades Técnicas</h3>
       <div class="skills-grid">
-        <div class="skill-item">
+        <fieldset class="skill-item">
           <strong>Frontend</strong>
           <ul>
             <li>Vue 3 (Composition API)</li>
@@ -20,8 +20,8 @@
             <li>TypeScript</li>
             <li>Tailwind CSS</li>
           </ul>
-        </div>
-        <div class="skill-item">
+        </fieldset>
+        <fieldset class="skill-item">
           <strong>Backend</strong>
           <ul>
             <li>Node.js</li>
@@ -29,8 +29,8 @@
             <li>Python</li>
             <li>SQL</li>
           </ul>
-        </div>
-        <div class="skill-item">
+        </fieldset>
+        <fieldset class="skill-item">
           <strong>Herramientas</strong>
           <ul>
             <li>Git</li>
@@ -38,17 +38,17 @@
             <li>Vite</li>
             <li>Jest & Vitest</li>
           </ul>
-        </div>
+        </fieldset>
       </div>
-    </div>
+    </fieldset>
 
-    <div class="content-section">
+    <fieldset class="content-section">
       <h3>Educación</h3>
       <p>
         Formación continua en ingeniería de software, desarrollador full-stack
         y especialista en arquitecturas modernas.
       </p>
-    </div>
+    </fieldset>
   </div>
 </template>
 
@@ -58,22 +58,14 @@
 .about-me {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding: 10px;
-  background: #c0c0c0;
-  color: #000;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
   height: 100%;
   overflow-y: auto;
 }
 
 .content-section {
-  background: #dfdfdf;
-  border: 1px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
   padding: 8px;
-  border-radius: 2px;
 }
 
 h2 {
@@ -103,11 +95,7 @@ p {
 }
 
 .skill-item {
-  background: #c0c0c0;
-  border: 1px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  padding: 6px;
-  border-radius: 2px;
+  padding: 6px 8px;
 }
 
 .skill-item strong {

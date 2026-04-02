@@ -24,7 +24,8 @@
             class="program-button"
             @click="openProgram(program.id)"
           >
-            {{ program.icon }} {{ program.name }}
+            <img :src="program.icon" :alt="program.name" class="program-icon" />
+            {{ program.name }}
           </button>
         </div>
 
@@ -55,11 +56,11 @@ import { useWindowsStore } from '@/stores/windows'
 
 const windowsStore = useWindowsStore()
 
-const recentPrograms = [
-  { id: 'my-pc', name: 'Mi PC', icon: '🖥️' },
-  { id: 'internet-explorer', name: 'Internet Explorer', icon: '🌐' },
-  { id: 'messenger', name: 'MSN Messenger', icon: '💬' },
-]
+const recentPrograms = windowsStore.windows.map((windowItem) => ({
+  id: windowItem.id,
+  name: windowItem.title,
+  icon: windowItem.icon,
+}))
 
 const openProgram = (windowId) => {
   windowsStore.toggleWindow(windowId)
@@ -164,6 +165,12 @@ const handleShutdown = () => {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.program-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .program-button:hover {

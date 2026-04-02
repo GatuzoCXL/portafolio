@@ -11,8 +11,8 @@
     </div>
 
     <div class="contact-content">
-      <div class="contact-section">
-        <h3>Contacto Directo</h3>
+      <fieldset class="contact-section">
+        <legend>Contacto Directo</legend>
         <div class="contact-form">
           <input
             v-model="form.name"
@@ -31,12 +31,12 @@
             placeholder="Tu mensaje..."
             class="form-textarea"
           ></textarea>
-          <button @click="sendMessage" class="send-button">Enviar</button>
+          <button @click="sendMessage">Enviar</button>
         </div>
-      </div>
+      </fieldset>
 
-      <div class="contact-section">
-        <h3>Redes Sociales</h3>
+      <fieldset class="contact-section">
+        <legend>Redes Sociales</legend>
         <div class="social-links">
           <a
             href="https://github.com/GatuzoCXL"
@@ -56,14 +56,14 @@
             ✉️ Email
           </a>
         </div>
-      </div>
+      </fieldset>
 
-      <div class="contact-section">
-        <h3>Estado</h3>
+      <fieldset class="contact-section">
+        <legend>Estado</legend>
         <p class="status-message">
           Disponible para proyectos y colaboraciones interesantes.
         </p>
-      </div>
+      </fieldset>
     </div>
   </div>
 </template>
@@ -96,10 +96,6 @@ const sendMessage = () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #c0c0c0;
-  color: #000;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
 }
 
 .contact-header {
@@ -138,26 +134,14 @@ const sendMessage = () => {
 .contact-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .contact-section {
-  background: #dfdfdf;
-  border: 1px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  padding: 10px;
-  border-radius: 2px;
-}
-
-h3 {
-  margin: 0 0 8px 0;
-  font-size: 12px;
-  font-weight: bold;
-  border-bottom: 1px solid #808080;
-  padding-bottom: 4px;
+  padding: 8px;
 }
 
 .contact-form {
@@ -169,13 +153,6 @@ h3 {
 .form-input,
 .form-textarea {
   padding: 4px;
-  border: 2px solid;
-  border-color: #808080 #ffffff #ffffff #808080;
-  background: white;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
-  color: #000;
-  border-radius: 2px;
 }
 
 .form-input {
@@ -188,25 +165,9 @@ h3 {
   font-size: 10px;
 }
 
-.send-button {
-  padding: 4px 8px;
-  background: #c0c0c0;
-  border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  cursor: pointer;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
-  font-weight: bold;
-  border-radius: 2px;
-  transition: all 0.1s;
-}
-
-.send-button:hover {
-  background: #dfdfdf;
-}
-
-.send-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
+.contact-form button {
+  width: fit-content;
+  padding: 4px 12px;
 }
 
 .social-links {
@@ -216,29 +177,14 @@ h3 {
 }
 
 .social-button {
-  padding: 6px;
-  background: #c0c0c0;
-  border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
+  padding: 6px 8px;
   text-decoration: none;
-  color: #000;
+  color: inherit;
   text-align: center;
-  font-size: 10px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.1s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-}
-
-.social-button:hover {
-  background: #dfdfdf;
-}
-
-.social-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
 }
 
 .status-message {

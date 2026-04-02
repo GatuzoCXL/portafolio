@@ -19,7 +19,8 @@
         :class="{ minimized: window.isMinimized }"
         @click="toggleWindowFromTaskbar(window.id)"
       >
-        {{ window.icon }} {{ window.title }}
+        <img :src="window.icon" :alt="window.title" class="taskbar-icon" />
+        {{ window.title }}
       </button>
     </div>
 
@@ -57,7 +58,7 @@ const toggleWindowFromTaskbar = (windowId) => {
 
 onMounted(() => {
   updateClock()
-  const interval = setInterval(updateClock, 60000) // Actualizar cada minuto
+  const interval = setInterval(updateClock, 60000)
   onUnmounted(() => clearInterval(interval))
 })
 </script>
@@ -142,6 +143,12 @@ onMounted(() => {
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.taskbar-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .taskbar-button:hover {

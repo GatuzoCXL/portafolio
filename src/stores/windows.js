@@ -7,7 +7,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'my-pc',
       title: 'Mi PC',
-      icon: '🖥️',
+      icon: '/icons/my-pc.svg',
       component: 'AboutMe',
       isOpen: false,
       isMinimized: false,
@@ -20,7 +20,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'internet-explorer',
       title: 'Internet Explorer',
-      icon: '🌐',
+      icon: '/icons/internet-explorer.svg',
       component: 'Projects',
       isOpen: false,
       isMinimized: false,
@@ -33,7 +33,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'messenger',
       title: 'MSN Messenger',
-      icon: '💬',
+      icon: '/icons/messenger.svg',
       component: 'Contact',
       isOpen: false,
       isMinimized: false,
@@ -41,6 +41,19 @@ export const useWindowsStore = defineStore('windows', () => {
       y: 200,
       width: 400,
       height: 500,
+      zIndex: 1,
+    },
+    {
+      id: 'games-folder',
+      title: 'Carpeta de Juegos',
+      icon: '/icons/games-folder.svg',
+      component: 'GamesExplorer',
+      isOpen: false,
+      isMinimized: false,
+      x: 240,
+      y: 120,
+      width: 980,
+      height: 680,
       zIndex: 1,
     },
   ])
