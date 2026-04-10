@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+backend/.env
+backend/.env.*
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +27,26 @@ dist-ssr
 *.sln
 *.sw?
 
-# Documentation
 README.md
 *.md
+
+#elpepe
+backend/
+
+.gga
+skills-lock.json
+
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+.github

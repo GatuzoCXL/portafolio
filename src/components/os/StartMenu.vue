@@ -11,13 +11,17 @@
     <div v-if="windowsStore.isStartMenuOpen" class="start-menu">
       <div class="start-menu-header">
         <div class="user-info">
-          <div class="user-icon">👤</div>
-          <span class="user-name">Usuario</span>
+          <div class="user-avatar">G</div>
+          <div class="user-meta">
+            <span class="user-name">Gasut</span>
+            <span class="user-subname">Administrador</span>
+          </div>
         </div>
       </div>
 
       <div class="start-menu-content">
         <div class="programs-column">
+          <div class="menu-section-title">Programas</div>
           <button
             v-for="program in recentPrograms"
             :key="program.id"
@@ -33,17 +37,21 @@
 
         <div class="system-column">
           <button class="system-button" @click="handleDocuments">
-            📄 Mis Documentos
+            <img src="/icons/documents.svg" alt="Documentos" class="sys-icon" />
+            Mis Documentos
           </button>
           <button class="system-button" @click="handleControl">
-            ⚙️ Panel de Control
+            <img src="/icons/control-panel.svg" alt="Panel" class="sys-icon" />
+            Panel de Control
           </button>
           <button class="system-button" @click="handleSearch">
-            🔍 Buscar
+            <img src="/icons/search.svg" alt="Buscar" class="sys-icon" />
+            Buscar
           </button>
           <div class="menu-divider-h"></div>
           <button class="system-button shutdown" @click="handleShutdown">
-            🔌 Apagar
+            <img src="/icons/power.svg" alt="Apagar" class="sys-icon" />
+            Apagar
           </button>
         </div>
       </div>
@@ -53,8 +61,12 @@
 
 <script setup>
 import { useWindowsStore } from '@/stores/windows'
+import { useSystemDialogStore } from '@/stores/systemDialog'
+import { useRunLauncherStore } from '@/stores/runLauncher'
 
 const windowsStore = useWindowsStore()
+const dialog = useSystemDialogStore()
+const runLauncher = useRunLauncherStore()
 
 const recentPrograms = windowsStore.windows.map((windowItem) => ({
   id: windowItem.id,
@@ -67,25 +79,31 @@ const openProgram = (windowId) => {
   windowsStore.closeStartMenu()
 }
 
-const handleDocuments = () => {
-  alert('Mis Documentos')
+const handleDocuments = async () => {
+  windowsStore.toggleWindow('documents')
   windowsStore.closeStartMenu()
 }
 
-const handleControl = () => {
-  alert('Panel de Control')
+const handleControl = async () => {
+  await dialog.alert({
+    title: 'Panel de Control',
+    message: 'Este panel está en construcción. Se personalizará próximamente.',
+  })
   windowsStore.closeStartMenu()
 }
 
 const handleSearch = () => {
-  alert('Buscar')
+  runLauncher.open()
   windowsStore.closeStartMenu()
 }
 
-const handleShutdown = () => {
-  const confirm = window.confirm('¿Estás seguro de que deseas apagar?')
-  if (confirm) {
-    alert('Sistema apagado. Gracias por visitar.')
+const handleShutdown = async () => {
+  const confirmShutdown = await dialog.confirm({
+    title: 'Apagar sistema',
+    message: '¿Estás seguro de que deseas apagar?',
+  })
+  if (confirmShutdown) {
+    windowsStore.beginShutdown()
   }
 }
 </script>
@@ -104,10 +122,10 @@ const handleShutdown = () => {
   position: fixed;
   bottom: 28px;
   left: 0;
-  width: 278px;
-  background: #c0c0c0;
+  width: 360px;
+  background: #f2f7ff;
   border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
+  border-color: #ffffff #3f6ea8 #3f6ea8 #ffffff;
   z-index: 9998;
   font-family: 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
@@ -117,12 +135,13 @@ const handleShutdown = () => {
 }
 
 .start-menu-header {
-  background: linear-gradient(90deg, #34529b, #4a7fbf);
+  background: linear-gradient(90deg, #1f57a6 0%, #2f7bd6 45%, #2a69bf 100%);
   color: white;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   align-items: center;
   gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .user-info {
@@ -131,32 +150,63 @@ const handleShutdown = () => {
   gap: 8px;
 }
 
-.user-icon {
-  font-size: 24px;
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ffcf7d, #f3a33e);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #5f3200;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
 }
 
 .user-name {
   font-weight: bold;
 }
 
+.user-subname {
+  font-size: 10px;
+  opacity: 0.92;
+}
+
 .start-menu-content {
   display: flex;
-  flex-direction: column;
-  padding: 2px;
+  flex-direction: row;
+  min-height: 300px;
   flex: 1;
 }
 
 .programs-column {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px 0;
+  gap: 1px;
+  padding: 6px;
+  background: #fff;
+}
+
+.menu-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2d4f7f;
+  padding: 3px 6px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.25px;
 }
 
 .program-button {
   background: transparent;
   border: none;
-  padding: 4px 8px;
+  padding: 6px 8px;
   text-align: left;
   cursor: pointer;
   font-family: 'MS Sans Serif', Arial, sans-serif;
@@ -179,22 +229,23 @@ const handleShutdown = () => {
 }
 
 .menu-divider {
-  height: 2px;
-  background: linear-gradient(90deg, #dfdfdf 0%, #808080 50%, #ffffff 100%);
-  margin: 4px 0;
+  width: 1px;
+  background: linear-gradient(180deg, #d8e6fb 0%, #8eb1e1 50%, #d8e6fb 100%);
 }
 
 .system-column {
+  width: 148px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px 0;
+  gap: 1px;
+  padding: 6px;
+  background: linear-gradient(180deg, #deebfb 0%, #cddff6 100%);
 }
 
 .system-button {
   background: transparent;
   border: none;
-  padding: 4px 8px;
+  padding: 6px 8px;
   text-align: left;
   cursor: pointer;
   font-family: 'MS Sans Serif', Arial, sans-serif;
@@ -205,14 +256,20 @@ const handleShutdown = () => {
   gap: 6px;
 }
 
+.sys-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .system-button:hover {
   background: linear-gradient(90deg, #000080, #1084d7);
   color: white;
 }
 
 .menu-divider-h {
-  height: 2px;
-  background: linear-gradient(90deg, #dfdfdf 0%, #808080 50%, #ffffff 100%);
+  height: 1px;
+  background: linear-gradient(90deg, #aac4e6 0%, #6f97cd 50%, #aac4e6 100%);
   margin: 4px 0;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="projects xp-window-frame">
+  <div class="documents-app xp-window-frame">
     <div class="xp-explorer-chrome">
       <div class="xp-menu-row">
         <span class="xp-menu-item">File</span>
@@ -44,68 +44,74 @@
           </div>
         </div>
         <button class="xp-tool-btn go-btn" @click="runSearch">Go</button>
-        <button class="xp-tool-btn xp-address-jump" @click="jumpToDocuments">Docs</button>
+        <button class="xp-tool-btn xp-address-jump" @click="jumpToProjects">Proy</button>
       </div>
     </div>
 
     <div class="xp-page-shell">
     <aside class="xp-sidebar-panel">
       <section class="xp-task-group">
-        <div class="xp-task-title">Project Tasks</div>
+        <header class="xp-task-title">File and Folder Tasks</header>
         <ul>
-          <li><button class="xp-task-link" @click="focusFirstProject">Abrir demo detallada</button></li>
-          <li><button class="xp-task-link" @click="openFirstGithub">Ir al repositorio</button></li>
-          <li><button class="xp-task-link" @click="clearSearch">Ver stack tecnológico</button></li>
+          <li><button class="xp-task-link" @click="openCv">Abrir CV</button></li>
+          <li><button class="xp-task-link" @click="focusCertificates">Ver certificados</button></li>
+          <li><button class="xp-task-link" @click="clearSearch">Actualizar documentos</button></li>
         </ul>
       </section>
 
       <section class="xp-task-group">
-        <div class="xp-task-title">Other Places</div>
+        <header class="xp-task-title">Other Places</header>
         <ul>
-          <li>Mis Documentos</li>
+          <li>Mi PC</li>
+          <li>Internet Explorer</li>
           <li>MSN Messenger</li>
-          <li>Music Studio</li>
+        </ul>
+      </section>
+
+      <section class="xp-task-group">
+        <header class="xp-task-title">Details</header>
+        <ul>
+          <li>Formato: PDF / Imagen</li>
+          <li>Origen: Supabase / Cloudinary</li>
         </ul>
       </section>
     </aside>
 
     <main class="xp-main-panel">
-      <p v-if="searchQuery" class="results-count">Resultados para "{{ searchQuery }}": {{ filteredProjects.length }}</p>
-      <div class="projects-container">
-      <div
-        v-for="project in filteredProjects"
-        :key="project.id"
-        class="project-card"
-      >
-        <div class="project-icon">
-          <img :src="project.icon" :alt="project.name" />
-        </div>
-        <h3>{{ project.name }}</h3>
-        <p class="project-description">{{ project.description }}</p>
-        <div class="project-tech">
-          <span v-for="tech in project.tech" :key="tech" class="tech-badge">
-            {{ tech }}
-          </span>
-        </div>
-        <div class="project-links">
+      <fieldset class="doc-section">
+        <legend>Curriculum Vitae</legend>
+
+        <div class="doc-card">
+          <p class="doc-title">{{ documents.cv?.title || 'CV' }}</p>
+          <p class="doc-meta" v-if="documents.cv?.updatedAt">Actualizado: {{ documents.cv.updatedAt }}</p>
+
           <a
-            v-if="project.github"
-            :href="project.github"
+            v-if="documents.cv?.url"
+            :href="documents.cv.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="link-button"
+            class="doc-link"
           >
-            GitHub
+            Abrir CV
           </a>
-          <button
-            class="link-button"
-            @click="openProjectDetail(project.id)"
-          >
-            Demo
-          </button>
+          <p v-else class="doc-empty">Aún no hay CV publicado.</p>
         </div>
-      </div>
-      </div>
+      </fieldset>
+
+      <fieldset class="doc-section">
+        <legend>Certificados</legend>
+
+        <div v-if="filteredCertificates.length" class="cert-grid" ref="certsRef">
+          <article v-for="cert in filteredCertificates" :key="cert.id || cert.url" class="cert-card">
+            <img v-if="cert.thumbnail" :src="cert.thumbnail" :alt="cert.title" />
+            <h4>{{ cert.title }}</h4>
+            <p>{{ cert.issuer }} · {{ cert.date }}</p>
+            <a :href="cert.url" target="_blank" rel="noopener noreferrer">Ver certificado</a>
+          </article>
+        </div>
+
+        <p v-else class="doc-empty">No hay certificados cargados por el momento.</p>
+      </fieldset>
     </main>
     </div>
   </div>
@@ -113,58 +119,48 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { useWindowsStore } from '@/stores/windows'
 import { usePortfolioContent } from '@/composables/usePortfolioContent'
+import { useWindowsStore } from '@/stores/windows'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
 
 const windowsStore = useWindowsStore()
-const { projects, loadContent } = usePortfolioContent()
-const searchQuery = ref('')
-const address = ref('Internet Explorer\\Projects')
+const { documents, loadContent } = usePortfolioContent()
+const address = ref('My Computer\\My Documents')
 const previousAddress = ref('')
+const searchQuery = ref('')
+const certsRef = ref(null)
 const addressRef = ref(null)
 const showSuggestions = ref(false)
 const selectedSuggestionIndex = ref(0)
 
 const addressSuggestions = computed(() => {
-  const base = [
-    'Internet Explorer\\Projects',
-    'Internet Explorer\\Projects\\GitHub',
-    'Internet Explorer\\Projects\\Demo',
+  const certTerms = (documents.value.certificates || []).map((cert) =>
+    `My Computer\\My Documents\\${cert.title}`
+  )
+
+  const all = [
     'My Computer\\My Documents',
+    'My Computer\\My Documents\\CV',
+    'My Computer\\My Documents\\Certificates',
+    'Internet Explorer\\Projects',
+    ...certTerms,
   ]
 
-  const projectTerms = (projects.value || []).flatMap((project) => [
-    `Internet Explorer\\Projects\\${project.name}`,
-    project.name,
-  ])
-
-  const all = [...base, ...projectTerms]
   return buildAddressSuggestions(all, address.value, 8)
 })
 
 const filteredSuggestions = computed(() => addressSuggestions.value)
 
-const filteredProjects = computed(() => {
-  if (!searchQuery.value.trim()) return projects.value
+const filteredCertificates = computed(() => {
+  const certs = documents.value.certificates || []
+  if (!searchQuery.value.trim()) return certs
 
   const term = searchQuery.value.toLowerCase()
-  return projects.value.filter((project) => {
-    const haystack = [project.name, project.description, ...(project.tech || [])]
-      .join(' ')
-      .toLowerCase()
+  return certs.filter((cert) => {
+    const haystack = [cert.title, cert.issuer, cert.date].join(' ').toLowerCase()
     return haystack.includes(term)
   })
 })
-
-onMounted(() => {
-  loadContent()
-})
-
-const openProjectDetail = (projectId) => {
-  // Crear una ventana dinámica para mostrar los detalles
-  windowsStore.openProjectDetail(projectId)
-}
 
 const runSearch = () => {
   previousAddress.value = address.value
@@ -176,13 +172,13 @@ const runSearch = () => {
   }
 
   const raw = address.value.replace(/^.*?\\/, '').trim()
-  searchQuery.value = raw === 'Projects' ? '' : raw
+  searchQuery.value = raw === 'My Documents' ? '' : raw
 }
 
 const clearSearch = () => {
   previousAddress.value = address.value
   searchQuery.value = ''
-  address.value = 'Internet Explorer\\Projects'
+  address.value = 'My Computer\\My Documents'
 }
 
 const focusAddress = async () => {
@@ -230,8 +226,16 @@ const hideSuggestionsSoon = () => {
   }, 100)
 }
 
-const jumpToDocuments = () => {
-  windowsStore.openWindow('documents')
+const openCv = () => {
+  if (documents.value.cv?.url) {
+    window.open(documents.value.cv.url, '_blank', 'noopener,noreferrer')
+  }
+}
+
+const focusCertificates = () => {
+  previousAddress.value = address.value
+  address.value = 'My Computer\\My Documents\\Certificates'
+  certsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 const goBack = () => {
@@ -242,134 +246,95 @@ const goBack = () => {
   runSearch()
 }
 
-const focusFirstProject = () => {
-  const project = filteredProjects.value[0]
-  if (project) {
-    openProjectDetail(project.id)
-  }
+const jumpToProjects = () => {
+  windowsStore.openWindow('internet-explorer')
 }
 
-const openFirstGithub = () => {
-  const project = filteredProjects.value.find((item) => item.github)
-  if (project?.github) {
-    window.open(project.github, '_blank', 'noopener,noreferrer')
-  }
-}
+onMounted(() => {
+  loadContent()
+})
 </script>
 
 <style scoped>
-.projects {
+.documents-app {
   height: 100%;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
 }
 
-.results-count {
-  margin: 0 0 8px;
-  font-size: 10px;
-  color: #2a4d83;
-}
-
-.projects-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-}
-
-.project-card {
-  background: #dfdfdf;
+.doc-section {
+  padding: 8px;
   border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  padding: 12px;
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: all 0.2s;
+  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
+  background: #eef5ff;
 }
 
-.project-card:hover {
-  border-color: #ffffff #404040 #404040 #ffffff;
-  background: #e8e8e8;
-}
-
-.project-icon {
-  height: 36px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.project-card h3 {
-  margin: 0;
-}
-
-.project-icon img {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-
-h3 {
-  margin: 0;
-  font-size: 12px;
-  font-weight: bold;
-  border-bottom: 1px solid #808080;
-  padding-bottom: 4px;
-}
-
-.project-description {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: #000;
-}
-
-.project-tech {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.tech-badge {
-  background: #000080;
-  color: white;
-  padding: 2px 4px;
-  font-size: 9px;
-  border-radius: 2px;
-  white-space: nowrap;
-}
-
-.project-links {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.link-button {
-  flex: 1;
-  padding: 4px 8px;
-  background: #c0c0c0;
-  border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  text-decoration: none;
-  color: #000;
-  font-size: 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.1s;
-  border-radius: 2px;
-}
-
-.link-button {
+.doc-section legend {
+  padding: 2px 8px;
+  border: 1px solid;
+  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
+  background: #ece9d8;
+  font-size: 11px;
   font-weight: 700;
 }
 
-.link-button:hover {
-  background: #dfdfdf;
+.doc-card {
+  display: grid;
+  gap: 6px;
 }
 
-.link-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
+.doc-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.doc-meta {
+  margin: 0;
+  font-size: 10px;
+  color: #475d7d;
+}
+
+.doc-link {
+  width: fit-content;
+}
+
+.doc-empty {
+  margin: 0;
+  font-size: 11px;
+  color: #555;
+}
+
+.cert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.cert-card {
+  border: 1px solid #a1b5d2;
+  background: #f6faff;
+  padding: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.cert-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border: 1px solid #7f9db9;
+}
+
+.cert-card h4 {
+  margin: 0;
+  font-size: 11px;
+}
+
+.cert-card p {
+  margin: 0;
+  font-size: 10px;
+}
+
+.cert-card a {
+  font-size: 10px;
 }
 </style>

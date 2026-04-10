@@ -2,10 +2,11 @@
   <div class="taskbar">
     <button
       class="start-button"
-      @click="windowsStore.toggleStartMenu"
+      :class="{ active: windowsStore.isStartMenuOpen }"
+      @click="onStartClick"
       aria-label="Botón de Inicio"
     >
-      <span class="start-icon">🪟</span>
+      <img src="/icons/start.svg" alt="Start" class="start-icon" />
       Start
     </button>
 
@@ -16,8 +17,11 @@
         v-for="window in windowsStore.openWindows"
         :key="window.id"
         class="taskbar-button"
-        :class="{ minimized: window.isMinimized }"
-        @click="toggleWindowFromTaskbar(window.id)"
+        :class="{
+          minimized: window.isMinimized,
+          active: activeWindowId === window.id && !window.isMinimized,
+        }"
+        @click="onTaskbarButtonClick(window.id)"
       >
         <img :src="window.icon" :alt="window.title" class="taskbar-icon" />
         {{ window.title }}
@@ -31,11 +35,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
 
 const windowsStore = useWindowsStore()
 const currentTime = ref('')
+
+const activeWindowId = computed(() => {
+  const visibleWindows = windowsStore.openWindows.filter(windowItem => !windowItem.isMinimized)
+  if (!visibleWindows.length) {
+    return null
+  }
+
+  return [...visibleWindows].sort((a, b) => b.zIndex - a.zIndex)[0].id
+})
 
 const updateClock = () => {
   const now = new Date()
@@ -48,12 +61,21 @@ const toggleWindowFromTaskbar = (windowId) => {
   const window = windowsStore.windows.find(w => w.id === windowId)
   if (window) {
     if (window.isMinimized) {
-      window.isMinimized = false
-      windowsStore.bringToFront(windowId)
+      windowsStore.restoreMinimizedWindow(windowId)
+    } else if (activeWindowId.value === windowId) {
+      windowsStore.minimizeWindow(windowId)
     } else {
-      window.isMinimized = true
+      windowsStore.bringToFront(windowId)
     }
   }
+}
+
+const onStartClick = () => {
+  windowsStore.toggleStartMenu()
+}
+
+const onTaskbarButtonClick = (windowId) => {
+  toggleWindowFromTaskbar(windowId)
 }
 
 onMounted(() => {
@@ -69,10 +91,9 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 28px;
-  background: linear-gradient(180deg, #dfdfdf 0%, #c0c0c0 100%);
-  border-top: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
+  height: 30px;
+  background: linear-gradient(180deg, #1d57a8 0%, #2c74cf 45%, #215db7 100%);
+  border-top: 1px solid #6aa2ea;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -84,36 +105,46 @@ onMounted(() => {
 }
 
 .start-button {
-  background: #c0c0c0;
+  background: linear-gradient(180deg, #6ac247 0%, #3a9f32 100%);
   border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  padding: 2px 6px;
+  border-color: #8ee26a #1d5f1a #1d5f1a #8ee26a;
+  border-radius: 0 12px 12px 0;
+  padding: 2px 10px 2px 8px;
   font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 3px;
-  height: 22px;
+  height: 24px;
   font-family: 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
 }
 
 .start-button:hover {
-  background: #dfdfdf;
+  filter: brightness(1.06);
 }
 
 .start-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
+  border-color: #1d5f1a #8ee26a #8ee26a #1d5f1a;
+}
+
+.start-button.active {
+  border-color: #1d5f1a #8ee26a #8ee26a #1d5f1a;
+  filter: brightness(0.95);
 }
 
 .start-icon {
-  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 .taskbar-divider {
   width: 2px;
   height: 22px;
-  background: linear-gradient(90deg, #dfdfdf 0%, #808080 50%, #ffffff 100%);
+  background: linear-gradient(90deg, #3a7fd4 0%, #0f4593 50%, #78aef1 100%);
   margin: 0 2px;
 }
 
@@ -127,9 +158,11 @@ onMounted(() => {
 }
 
 .taskbar-button {
-  background: #c0c0c0;
+  background: linear-gradient(180deg, #4e8dd7 0%, #3b7bc9 100%);
   border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
+  border-color: #88b8ef #1f4f95 #1f4f95 #88b8ef;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
   padding: 2px 6px;
   cursor: pointer;
   white-space: nowrap;
@@ -152,25 +185,30 @@ onMounted(() => {
 }
 
 .taskbar-button:hover {
-  background: #dfdfdf;
+  filter: brightness(1.08);
 }
 
 .taskbar-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
+  border-color: #1f4f95 #88b8ef #88b8ef #1f4f95;
+}
+
+.taskbar-button.active {
+  background: linear-gradient(180deg, #2e6ab9 0%, #22579f 100%);
+  border-color: #1f4f95 #88b8ef #88b8ef #1f4f95;
 }
 
 .taskbar-button.minimized {
-  font-style: italic;
-  opacity: 0.7;
+  opacity: 0.78;
 }
 
 .system-clock {
-  background: #c0c0c0;
+  background: linear-gradient(180deg, #4b8dd8 0%, #3c78c4 100%);
   border: 2px solid;
-  border-color: #808080 #ffffff #ffffff #808080;
+  border-color: #1f4f95 #88b8ef #88b8ef #1f4f95;
   padding: 2px 6px;
   margin-left: auto;
-  font-family: 'Courier New', monospace;
+  color: #fff;
+  font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
   white-space: nowrap;
   height: 22px;
@@ -180,6 +218,6 @@ onMounted(() => {
 }
 
 .system-clock {
-  box-shadow: 1px 1px 0 #ffffff inset, -1px -1px 0 #808080 inset;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 </style>
