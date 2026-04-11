@@ -3,6 +3,9 @@ import { defaultContent } from '@/content/defaultContent'
 
 const clone = (value) => JSON.parse(JSON.stringify(value))
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+const CONTENT_URL = `${API_BASE}/api/content`
+
 const content = ref(clone(defaultContent))
 const loading = ref(false)
 const loaded = ref(false)
@@ -39,7 +42,7 @@ const loadContent = async () => {
   loading.value = true
   error.value = ''
 
-  loadPromise = fetch('/api/content')
+  loadPromise = fetch(CONTENT_URL)
     .then(async (response) => {
       if (!response.ok) {
         throw new Error(`content ${response.status}`)
