@@ -84,6 +84,7 @@
         <div class="doc-card">
           <p class="doc-title">{{ documents.cv?.title || 'CV' }}</p>
           <p class="doc-meta" v-if="documents.cv?.updatedAt">Actualizado: {{ documents.cv.updatedAt }}</p>
+          <p class="doc-meta url" v-if="documents.cv?.url">{{ documents.cv.url }}</p>
 
           <a
             v-if="documents.cv?.url"
@@ -291,6 +292,10 @@ onMounted(() => {
   margin: 0;
   font-size: 10px;
   color: #475d7d;
+}
+
+.doc-meta.url {
+  word-break: break-all;
 }
 
 .doc-link {
