@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { assetUrl } from '@/utils/assetUrl'
 
 const LAYOUT_STORAGE_KEY = 'xp-window-layout-v1'
 
@@ -20,7 +21,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'my-pc',
       title: 'Mi PC',
-      icon: '/icons/my-pc.svg',
+      icon: assetUrl('icons/my-pc.svg'),
       component: 'AboutMe',
       isOpen: false,
       isMinimized: false,
@@ -33,7 +34,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'documents',
       title: 'Mis Documentos',
-      icon: '/icons/documents.svg',
+      icon: assetUrl('icons/documents.svg'),
       component: 'Documents',
       isOpen: false,
       isMinimized: false,
@@ -46,7 +47,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'internet-explorer',
       title: 'Internet Explorer',
-      icon: '/icons/internet-explorer.svg',
+      icon: assetUrl('icons/internet-explorer.svg'),
       component: 'Projects',
       isOpen: false,
       isMinimized: false,
@@ -59,7 +60,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'messenger',
       title: 'MSN Messenger',
-      icon: '/icons/messenger.svg',
+      icon: assetUrl('icons/messenger.svg'),
       component: 'Contact',
       isOpen: false,
       isMinimized: false,
@@ -72,7 +73,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'games-folder',
       title: 'Carpeta de Juegos',
-      icon: '/icons/games-folder.svg',
+      icon: assetUrl('icons/games-folder.svg'),
       component: 'GamesExplorer',
       isOpen: false,
       isMinimized: false,
@@ -85,7 +86,7 @@ export const useWindowsStore = defineStore('windows', () => {
     {
       id: 'music-player',
       title: 'Music Studio',
-      icon: '/icons/media-audio.svg',
+      icon: assetUrl('icons/media-audio.svg'),
       component: 'MusicPlayerApp',
       isOpen: false,
       isMinimized: false,
@@ -289,7 +290,7 @@ export const useWindowsStore = defineStore('windows', () => {
       detailWindow = {
         id: `project-${projectId}`,
         title: `Project Details - ${projectId}`,
-        icon: '/icons/internet-explorer.svg',
+        icon: assetUrl('icons/internet-explorer.svg'),
         component: 'ProjectDetail',
         projectId: projectId,
         isOpen: true,

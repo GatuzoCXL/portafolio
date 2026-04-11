@@ -1,3 +1,5 @@
+import { assetUrl } from '@/utils/assetUrl'
+
 export const defaultContent = {
   documents: {
     cv: {
@@ -11,7 +13,7 @@ export const defaultContent = {
     {
       id: 'rosy-music-bot',
       name: 'Rosy Music Bot',
-      icon: '/icons/project-bot.svg',
+      icon: assetUrl('icons/project-bot.svg'),
       description:
         'Bot de Discord avanzado para reproducción de música con soporte de múltiples plataformas.',
       fullDescription:
@@ -30,7 +32,7 @@ export const defaultContent = {
     {
       id: 'joya-express',
       name: 'Joya Express',
-      icon: '/icons/project-box.svg',
+      icon: assetUrl('icons/project-box.svg'),
       description:
         'Aplicación móvil para gestión de entregas en tiempo real con seguimiento en vivo.',
       fullDescription:
@@ -55,7 +57,7 @@ export const defaultContent = {
     {
       id: 'metal-corp',
       name: 'New Corp (Metal Corp)',
-      icon: '/icons/project-globe.svg',
+      icon: assetUrl('icons/project-globe.svg'),
       description: 'Página web corporativa para empresa de metalurgia con diseño responsivo.',
       fullDescription:
         'Página web corporativa moderna con diseño responsivo. Portafolio de servicios, galería de proyectos y sistema de contacto integrado para empresa de metalurgia.',
@@ -74,7 +76,7 @@ export const defaultContent = {
     {
       id: 'crosshair-gasu',
       name: 'Crosshair Gasu',
-      icon: '/icons/project-crosshair.svg',
+      icon: assetUrl('icons/project-crosshair.svg'),
       description: 'Herramienta de personalización de crosshairs para juegos competitivos.',
       fullDescription:
         'Aplicación de escritorio para juegos. Herramienta de personalización de crosshairs (retículas) para mejorar la puntería en juegos competitivos. Incluye múltiples estilos y configuraciones.',

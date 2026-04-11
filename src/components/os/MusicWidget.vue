@@ -2,7 +2,7 @@
   <aside class="music-widget" :class="skinClass">
     <header class="widget-header">
       <div class="widget-title">
-        <img src="/icons/media-audio.svg" alt="Music" />
+        <img :src="musicIcon" alt="Music" />
         <div>
           <strong>Now Playing</strong>
           <p>YT Music Widget</p>
@@ -12,7 +12,7 @@
     </header>
 
     <section class="widget-now">
-      <img :src="currentTrack?.thumbnail || '/icons/media-audio.svg'" alt="cover" class="cover" />
+      <img :src="currentTrack?.thumbnail || musicIcon" alt="cover" class="cover" />
       <div class="track-meta">
         <p class="track-title">{{ currentTrack?.title || 'Sin selección' }}</p>
         <p class="track-channel">{{ currentTrack?.channelTitle || 'Sin reproducción automática' }}</p>
@@ -72,10 +72,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMusicStore } from '@/stores/music'
+import { assetUrl } from '@/utils/assetUrl'
 
 defineEmits(['close'])
 
 const musicStore = useMusicStore()
+const musicIcon = assetUrl('icons/media-audio.svg')
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 const PLAYLIST_ID = 'PLdutKNs0aaYFwLGTFMGFyCEYeknDFYZXU'

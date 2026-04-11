@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { defaultContent } from '@/content/defaultContent'
+import { normalizeAppAssetPath, normalizeStoragePublicUrl } from '@/utils/assetUrl'
 
 const clone = (value) => JSON.parse(JSON.stringify(value))
 
@@ -25,6 +26,27 @@ const mergeContent = (incoming) => {
 
   if (!next.documents) {
     next.documents = clone(defaultContent.documents)
+  }
+
+  next.projects = (next.projects || []).map((project) => ({
+    ...project,
+    icon: normalizeAppAssetPath(project.icon),
+  }))
+
+  if (next.documents?.cv) {
+    const normalizedUrl = normalizeStoragePublicUrl(next.documents.cv.url)
+    next.documents.cv = {
+      ...next.documents.cv,
+      url: normalizedUrl,
+    }
+  }
+
+  if (Array.isArray(next.documents?.certificates)) {
+    next.documents.certificates = next.documents.certificates.map((cert) => ({
+      ...cert,
+      url: normalizeStoragePublicUrl(cert.url),
+      thumbnail: normalizeStoragePublicUrl(cert.thumbnail),
+    }))
   }
 
   content.value = next

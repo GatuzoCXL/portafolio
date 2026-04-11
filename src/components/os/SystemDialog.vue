@@ -9,7 +9,7 @@
           </div>
 
           <div class="dialog-body">
-            <img src="/icons/messenger.svg" alt="Sistema" class="dialog-icon" />
+            <img :src="dialogIcon" alt="Sistema" class="dialog-icon" />
             <p>{{ dialogStore.message }}</p>
           </div>
 
@@ -25,8 +25,10 @@
 
 <script setup>
 import { useSystemDialogStore } from '@/stores/systemDialog'
+import { assetUrl } from '@/utils/assetUrl'
 
 const dialogStore = useSystemDialogStore()
+const dialogIcon = assetUrl('icons/messenger.svg')
 
 const accept = () => {
   dialogStore.close(true)

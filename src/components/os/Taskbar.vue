@@ -6,7 +6,7 @@
       @click="onStartClick"
       aria-label="Botón de Inicio"
     >
-      <img src="/icons/start.svg" alt="Start" class="start-icon" />
+      <img :src="startIcon" alt="Start" class="start-icon" />
       Start
     </button>
 
@@ -37,9 +37,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
+import { assetUrl } from '@/utils/assetUrl'
 
 const windowsStore = useWindowsStore()
 const currentTime = ref('')
+const startIcon = assetUrl('icons/start.svg')
 
 const activeWindowId = computed(() => {
   const visibleWindows = windowsStore.openWindows.filter(windowItem => !windowItem.isMinimized)

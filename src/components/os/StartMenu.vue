@@ -37,20 +37,20 @@
 
         <div class="system-column">
           <button class="system-button" @click="handleDocuments">
-            <img src="/icons/documents.svg" alt="Documentos" class="sys-icon" />
+            <img :src="documentsIcon" alt="Documentos" class="sys-icon" />
             Mis Documentos
           </button>
           <button class="system-button" @click="handleControl">
-            <img src="/icons/control-panel.svg" alt="Panel" class="sys-icon" />
+            <img :src="controlPanelIcon" alt="Panel" class="sys-icon" />
             Panel de Control
           </button>
           <button class="system-button" @click="handleSearch">
-            <img src="/icons/search.svg" alt="Buscar" class="sys-icon" />
+            <img :src="searchIcon" alt="Buscar" class="sys-icon" />
             Buscar
           </button>
           <div class="menu-divider-h"></div>
           <button class="system-button shutdown" @click="handleShutdown">
-            <img src="/icons/power.svg" alt="Apagar" class="sys-icon" />
+            <img :src="powerIcon" alt="Apagar" class="sys-icon" />
             Apagar
           </button>
         </div>
@@ -63,10 +63,15 @@
 import { useWindowsStore } from '@/stores/windows'
 import { useSystemDialogStore } from '@/stores/systemDialog'
 import { useRunLauncherStore } from '@/stores/runLauncher'
+import { assetUrl } from '@/utils/assetUrl'
 
 const windowsStore = useWindowsStore()
 const dialog = useSystemDialogStore()
 const runLauncher = useRunLauncherStore()
+const documentsIcon = assetUrl('icons/documents.svg')
+const controlPanelIcon = assetUrl('icons/control-panel.svg')
+const searchIcon = assetUrl('icons/search.svg')
+const powerIcon = assetUrl('icons/power.svg')
 
 const recentPrograms = windowsStore.windows.map((windowItem) => ({
   id: windowItem.id,

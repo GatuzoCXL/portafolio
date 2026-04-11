@@ -1,5 +1,10 @@
 <template>
-  <div class="desktop" @click="handleDesktopClick" @contextmenu.prevent="openContextMenu">
+  <div
+    class="desktop"
+    :style="{ backgroundImage: `url(${desktopBackground})` }"
+    @click="handleDesktopClick"
+    @contextmenu.prevent="openContextMenu"
+  >
     <div class="desktop-icons">
       <div
         v-for="icon in desktopIcons"
@@ -33,42 +38,44 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
+import { assetUrl } from '@/utils/assetUrl'
 
 const windowsStore = useWindowsStore()
 const clickedId = ref(null)
 const selectedIconId = ref(null)
 const contextMenu = ref({ visible: false, x: 0, y: 0, iconId: null })
+const desktopBackground = assetUrl('wallpapers/ed.jpg')
 
 const desktopIcons = [
   {
     id: 'my-pc',
     label: 'Mi PC',
-    icon: '/icons/my-pc.svg',
+    icon: assetUrl('icons/my-pc.svg'),
   },
   {
     id: 'documents',
     label: 'Mis Documentos',
-    icon: '/icons/documents.svg',
+    icon: assetUrl('icons/documents.svg'),
   },
   {
     id: 'internet-explorer',
     label: 'Internet Explorer',
-    icon: '/icons/internet-explorer.svg',
+    icon: assetUrl('icons/internet-explorer.svg'),
   },
   {
     id: 'messenger',
     label: 'MSN Messenger',
-    icon: '/icons/messenger.svg',
+    icon: assetUrl('icons/messenger.svg'),
   },
   {
     id: 'games-folder',
     label: 'Juegos',
-    icon: '/icons/games-folder.svg',
+    icon: assetUrl('icons/games-folder.svg'),
   },
   {
     id: 'music-player',
     label: 'Music Studio',
-    icon: '/icons/media-audio.svg',
+    icon: assetUrl('icons/media-audio.svg'),
   },
 ]
 
@@ -139,7 +146,9 @@ onBeforeUnmount(() => {
 .desktop {
   width: 100%;
   height: 100%;
-  background: url('/wallpapers/ed.jpg') center center / cover no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
   overflow: hidden;
   user-select: none;
 }

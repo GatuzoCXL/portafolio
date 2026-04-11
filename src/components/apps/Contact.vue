@@ -72,7 +72,7 @@
     <main class="xp-main-panel">
     <div class="contact-header">
       <div class="profile">
-        <div class="avatar"><img src="/icons/user-avatar.svg" alt="Avatar" /></div>
+        <div class="avatar"><img :src="userAvatarIcon" alt="Avatar" /></div>
         <div class="profile-text">
           <strong>Hola</strong>
           <p>Gracias por visitar mi portafolio</p>
@@ -124,16 +124,16 @@
             rel="noopener noreferrer"
             class="social-button"
           >
-            <img src="/icons/brand-github.svg" alt="GitHub" class="social-icon" /> GitHub
+            <img :src="githubIcon" alt="GitHub" class="social-icon" /> GitHub
           </a>
           <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="social-button">
-            <img src="/icons/brand-linkedin.svg" alt="LinkedIn" class="social-icon" /> LinkedIn
+            <img :src="linkedinIcon" alt="LinkedIn" class="social-icon" /> LinkedIn
           </a>
           <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-button">
-            <img src="/icons/messenger.svg" alt="Twitter" class="social-icon" /> Twitter
+            <img :src="messengerIcon" alt="Twitter" class="social-icon" /> Twitter
           </a>
           <a href="mailto:martinvar.76@gmail.com" class="social-button">
-            <img src="/icons/mail.svg" alt="Email" class="social-icon" /> Email
+            <img :src="mailIcon" alt="Email" class="social-icon" /> Email
           </a>
         </div>
       </fieldset>
@@ -154,8 +154,14 @@
 import { computed, nextTick, reactive, ref } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
+import { assetUrl } from '@/utils/assetUrl'
 
 const windowsStore = useWindowsStore()
+const userAvatarIcon = assetUrl('icons/user-avatar.svg')
+const githubIcon = assetUrl('icons/brand-github.svg')
+const linkedinIcon = assetUrl('icons/brand-linkedin.svg')
+const messengerIcon = assetUrl('icons/messenger.svg')
+const mailIcon = assetUrl('icons/mail.svg')
 
 const form = reactive({
   name: '',
