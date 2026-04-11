@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/portafolio/',
   plugins: [vue()],
   build: {
     cssMinify: 'esbuild',
