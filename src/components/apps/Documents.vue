@@ -91,11 +91,11 @@
             <div v-if="cvPreviewLoading" class="preview-skeleton" aria-hidden="true"></div>
             <transition name="preview-fade" mode="out-in">
               <iframe
-                v-if="isCvPdf"
-                :key="`cv-pdf-${cvPreviewUrl}`"
+                v-if="isCvPdf && cvEmbedUrl"
+                :key="`cv-pdf-${cvEmbedUrl}`"
                 class="doc-preview"
                 :class="{ 'is-loading': cvPreviewLoading }"
-                :src="cvPreviewUrl"
+                :src="cvEmbedUrl"
                 title="Vista previa de CV"
                 loading="lazy"
                 @load="onCvPreviewLoaded"
@@ -111,6 +111,7 @@
                 @load="onCvPreviewLoaded"
               />
               <div v-else key="cv-unavailable" class="preview-unavailable">
+                <p v-if="cvInlineError" class="doc-meta">{{ cvInlineError }}</p>
                 <p class="doc-meta">No hay preview embebido para este formato.</p>
                 <div class="doc-actions">
                   <a :href="documents.cv.url" target="_blank" rel="noopener noreferrer" class="doc-link">
@@ -193,11 +194,11 @@
 
             <transition name="preview-fade" mode="out-in">
               <iframe
-                v-if="isSelectedCertificatePdf"
-                :key="`cert-pdf-${selectedCertificatePreviewUrl}`"
+                v-if="isSelectedCertificatePdf && selectedCertificateEmbedUrl"
+                :key="`cert-pdf-${selectedCertificateEmbedUrl}`"
                 class="doc-preview"
                 :class="{ 'is-loading': selectedCertificatePreviewLoading }"
-                :src="selectedCertificatePreviewUrl"
+                :src="selectedCertificateEmbedUrl"
                 :title="`Vista previa de ${selectedCertificate.title}`"
                 loading="lazy"
                 @load="onSelectedCertificatePreviewLoaded"
@@ -215,6 +216,7 @@
               />
 
               <div v-else key="cert-unavailable" class="preview-unavailable">
+                <p v-if="selectedCertificateInlineError" class="doc-meta">{{ selectedCertificateInlineError }}</p>
                 <p class="doc-meta">No hay preview embebido para este certificado.</p>
                 <p class="doc-empty">Podés abrirlo en nueva pestaña o descargarlo desde acá.</p>
               </div>
@@ -277,7 +279,11 @@ const showingCvPreview = ref(true)
 const selectedCertificateKey = ref('')
 const certificateFallbackThumbnail = assetUrl('icons/documents.svg')
 const cvPreviewLoading = ref(true)
+const cvEmbedUrl = ref('')
+const cvInlineError = ref('')
 const selectedCertificatePreviewLoading = ref(true)
+const selectedCertificateEmbedUrl = ref('')
+const selectedCertificateInlineError = ref('')
 const actionFeedback = ref({ type: '', text: '' })
 const CERT_LAST_SELECTED_KEY = 'xp-documents-last-certificate'
 let feedbackTimer = null
@@ -326,6 +332,68 @@ const cvFileName = computed(
 
 const toDownloadUrl = (url) => downloadUrl(url)
 
+const revokeCvEmbedUrl = () => {
+  if (cvEmbedUrl.value) {
+    URL.revokeObjectURL(cvEmbedUrl.value)
+    cvEmbedUrl.value = ''
+  }
+}
+
+const resolveCvEmbedUrl = async () => {
+  if (!cvPreviewUrl.value || !isCvPdf.value) {
+    revokeCvEmbedUrl()
+    cvInlineError.value = ''
+    return
+  }
+
+  cvInlineError.value = ''
+
+  try {
+    const response = await fetch(cvPreviewUrl.value)
+    if (!response.ok) throw new Error(`No se pudo cargar el PDF (${response.status}).`)
+
+    const blob = await response.blob()
+    const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' })
+
+    revokeCvEmbedUrl()
+    cvEmbedUrl.value = URL.createObjectURL(pdfBlob)
+  } catch {
+    revokeCvEmbedUrl()
+    cvInlineError.value = 'No se pudo generar vista previa embebida para este PDF.'
+  }
+}
+
+const revokeSelectedCertificateEmbedUrl = () => {
+  if (selectedCertificateEmbedUrl.value) {
+    URL.revokeObjectURL(selectedCertificateEmbedUrl.value)
+    selectedCertificateEmbedUrl.value = ''
+  }
+}
+
+const resolveSelectedCertificateEmbedUrl = async () => {
+  if (!selectedCertificatePreviewUrl.value || !isSelectedCertificatePdf.value) {
+    revokeSelectedCertificateEmbedUrl()
+    selectedCertificateInlineError.value = ''
+    return
+  }
+
+  selectedCertificateInlineError.value = ''
+
+  try {
+    const response = await fetch(selectedCertificatePreviewUrl.value)
+    if (!response.ok) throw new Error(`No se pudo cargar el PDF (${response.status}).`)
+
+    const blob = await response.blob()
+    const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' })
+
+    revokeSelectedCertificateEmbedUrl()
+    selectedCertificateEmbedUrl.value = URL.createObjectURL(pdfBlob)
+  } catch {
+    revokeSelectedCertificateEmbedUrl()
+    selectedCertificateInlineError.value = 'No se pudo generar vista previa embebida para este certificado.'
+  }
+}
+
 const certKey = (cert) => cert?.id || cert?.url || cert?.title || ''
 
 const selectedCertificate = computed(() => {
@@ -361,6 +429,10 @@ const certificateTypeLabel = (cert) => {
 const showCvPreview = async () => {
   showingCvPreview.value = true
   cvPreviewLoading.value = true
+  await resolveCvEmbedUrl()
+  if (isCvPdf.value && !cvEmbedUrl.value) {
+    cvPreviewLoading.value = false
+  }
   await nextTick()
   cvPreviewRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
@@ -522,6 +594,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (feedbackTimer) window.clearTimeout(feedbackTimer)
+  revokeCvEmbedUrl()
+  revokeSelectedCertificateEmbedUrl()
   window.removeEventListener('keydown', handleKeydown)
 })
 
@@ -553,19 +627,31 @@ watch(selectedCertificateKey, (value) => {
   window.localStorage.setItem(CERT_LAST_SELECTED_KEY, value)
 })
 
-watch(cvPreviewUrl, () => {
+watch(cvPreviewUrl, async () => {
   cvPreviewLoading.value = true
+  await resolveCvEmbedUrl()
   if (!cvPreviewUrl.value || (!isCvPdf.value && !isCvImage.value)) {
+    cvPreviewLoading.value = false
+    return
+  }
+
+  if (isCvPdf.value && !cvEmbedUrl.value) {
     cvPreviewLoading.value = false
   }
 })
 
-watch(selectedCertificatePreviewUrl, () => {
+watch(selectedCertificatePreviewUrl, async () => {
   selectedCertificatePreviewLoading.value = true
+  await resolveSelectedCertificateEmbedUrl()
   if (
     !selectedCertificatePreviewUrl.value ||
     (!isSelectedCertificatePdf.value && !isSelectedCertificateImage.value)
   ) {
+    selectedCertificatePreviewLoading.value = false
+    return
+  }
+
+  if (isSelectedCertificatePdf.value && !selectedCertificateEmbedUrl.value) {
     selectedCertificatePreviewLoading.value = false
   }
 })
