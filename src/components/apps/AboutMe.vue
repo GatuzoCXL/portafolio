@@ -3,7 +3,7 @@
     <fieldset class="content-section">
       <h2>Mi PC</h2>
       <p>
-        Soy Leonardo Vargas Martínez, Desarrollador Full Stack egresado de Tecsup.
+        Soy Desarrollador Full Stack egresado de Tecsup.
         Desarrollo soluciones web y móviles con enfoque práctico: arquitectura,
         rendimiento y experiencia de usuario.
       </p>
