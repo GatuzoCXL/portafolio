@@ -17,7 +17,7 @@
       <h3>Perfil Profesional</h3>
       <ul class="highlight-list">
         <li>Rol: Desarrollador Full Stack</li>
-        <li>Ubicación: Paucarpata, Arequipa, Perú</li>
+        <li>Ubicación: Perú</li>
         <li>Formación: Diseño y Desarrollo de Software (Tecsup)</li>
         <li>Idiomas: Español, Inglés (B1), Ruso (A1)</li>
       </ul>
