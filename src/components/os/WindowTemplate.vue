@@ -2,7 +2,7 @@
   <Transition :name="transitionName">
     <div
       class="window"
-      :class="{ maximized: isMaximized, 'is-active': isActive }"
+      :class="{ maximized: isMaximized, 'is-active': isActive, 'is-dragging': isDragging }"
       :style="{
         top: `${dragY}px`,
         left: `${dragX}px`,
@@ -164,7 +164,7 @@ const { x: dragX, y: dragY, isDragging } = useDraggable(windowElement, {
     const viewportW = window.innerWidth
     const viewportH = window.innerHeight - 30
 
-    // Snap maximize near top edge.
+    // Snap maximizar cerca del borde superior.
     if (dragY.value <= SNAP_THRESHOLD) {
       isMaximized.value = true
       dragX.value = 0
@@ -176,7 +176,7 @@ const { x: dragX, y: dragY, isDragging } = useDraggable(windowElement, {
       return
     }
 
-    // Snap left / right half.
+    // Snap mitad izquierda/derecha.
     if (dragX.value <= SNAP_THRESHOLD) {
       dragX.value = 0
       dragY.value = 0
@@ -194,14 +194,11 @@ const { x: dragX, y: dragY, isDragging } = useDraggable(windowElement, {
       currentHeight.value = viewportH
       windowStore.updateWindowPosition(props.windowId, dragX.value, 0)
       windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
+      return
     }
-  },
-})
 
-watch([dragX, dragY], ([nextX, nextY]) => {
-  if (!isMaximized.value) {
-    windowStore.updateWindowPosition(props.windowId, Math.round(nextX), Math.round(nextY))
-  }
+    windowStore.updateWindowPosition(props.windowId, Math.round(dragX.value), Math.round(dragY.value))
+  },
 })
 
 watch(
@@ -223,15 +220,15 @@ const minimizeWindow = () => {
 }
 
 const toggleMaximize = () => {
-    if (isMaximized.value) {
-      isMaximized.value = false
+  if (isMaximized.value) {
+    isMaximized.value = false
     dragX.value = savedX.value
     dragY.value = savedY.value
     currentWidth.value = savedW.value
-      currentHeight.value = savedH.value
-      windowStore.updateWindowPosition(props.windowId, dragX.value, dragY.value)
-      windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
-    } else {
+    currentHeight.value = savedH.value
+    windowStore.updateWindowPosition(props.windowId, dragX.value, dragY.value)
+    windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
+  } else {
     savedX.value = dragX.value
     savedY.value = dragY.value
     savedW.value = currentWidth.value
@@ -240,11 +237,11 @@ const toggleMaximize = () => {
     isMaximized.value = true
     dragX.value = 0
     dragY.value = 0
-      currentWidth.value = window.innerWidth
-      currentHeight.value = window.innerHeight - 30
-      windowStore.updateWindowPosition(props.windowId, 0, 0)
-      windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
-    }
+    currentWidth.value = window.innerWidth
+    currentHeight.value = window.innerHeight - 30
+    windowStore.updateWindowPosition(props.windowId, 0, 0)
+    windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
+  }
 }
 
 const closeWindow = () => {
@@ -252,12 +249,18 @@ const closeWindow = () => {
 }
 
 const startResize = (event, direction) => {
+  event.preventDefault()
+
   const startX = event.clientX
   const startY = event.clientY
   const startWidth = currentWidth.value
   const startHeight = currentHeight.value
 
+  // Prevenir seleccion de texto durante resize
+  document.body.style.userSelect = 'none'
+
   const handleMouseMove = (e) => {
+    e.preventDefault()
     const deltaX = e.clientX - startX
     const deltaY = e.clientY - startY
 
@@ -270,6 +273,7 @@ const startResize = (event, direction) => {
   }
 
   const handleMouseUp = () => {
+    document.body.style.userSelect = ''
     windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
@@ -286,17 +290,26 @@ const startResize = (event, direction) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  filter: drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.35));
-  border: 1px solid #0b4ca0;
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  box-shadow: var(--win-shadow);
   border-radius: 6px 6px 0 0;
-  background: #f3f7ff;
+  background: var(--win-body-bg);
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     top 0.12s ease,
     left 0.12s ease,
     width 0.12s ease,
     height 0.12s ease,
-    box-shadow 0.12s ease,
-    border-color 0.12s ease;
+    box-shadow 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+.window.is-dragging {
+  transition: none;
+  cursor: move;
+  will-change: top, left;
 }
 
 .window.maximized {
@@ -314,12 +327,28 @@ const startResize = (event, direction) => {
   -webkit-user-select: none;
   height: 28px;
   padding: 0 4px 0 8px;
-  background: linear-gradient(90deg, #0a4ca0 0%, #2f7ad2 45%, #2a67be 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--win-title-bg);
+  border-bottom: 2px solid;
+  border-color: rgba(255, 255, 255, 0.25) rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.15);
+  touch-action: none;
 }
 
 .title-bar.inactive {
   background: linear-gradient(90deg, #7f94ad 0%, #9aacc3 45%, #8ea1b9 100%);
+}
+
+.title-bar.inactive .title-bar-text {
+  opacity: 0.7;
+}
+
+.title-bar.inactive .minimize-btn,
+.title-bar.inactive .maximize-btn {
+  filter: grayscale(0.6);
+}
+
+.title-bar.inactive .close-btn {
+  filter: grayscale(0.4);
 }
 
 .title-bar-text {
@@ -332,7 +361,7 @@ const startResize = (event, direction) => {
   flex: 1;
   min-width: 0;
   color: #fff;
-  font-size: 12px;
+  font-size: var(--font-lg);
   font-weight: 700;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
 }
@@ -350,69 +379,8 @@ const startResize = (event, direction) => {
   min-height: 0;
   border: 1px solid;
   border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #c0c0c0;
-}
-
-.window-enter-active {
-  animation: window-open 0.18s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-}
-
-.window-leave-active {
-  animation: window-close 0.15s ease-in forwards;
-  pointer-events: none;
-}
-
-@keyframes window-open {
-  from {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes window-close {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.75) translateY(30px);
-  }
-}
-
-.window-minimize-leave-active {
-  animation: window-minimize 0.18s ease-in forwards;
-  pointer-events: none;
-}
-
-@keyframes window-minimize {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0.1;
-    transform: translateY(220px) scale(0.25);
-  }
-}
-
-.window-restore-enter-active {
-  animation: window-restore 0.18s ease-out forwards;
-}
-
-@keyframes window-restore {
-  from {
-    opacity: 0.1;
-    transform: translateY(220px) scale(0.25);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  background: var(--win-body-bg);
+  padding: var(--spacing-md);
 }
 
 .title-bar-controls {
@@ -426,23 +394,25 @@ const startResize = (event, direction) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
-  height: 17px;
-  min-height: 17px;
-  max-height: 17px;
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  height: 20px;
+  min-height: 20px;
+  max-height: 20px;
   padding: 0;
-  border-radius: 3px;
+  border-radius: 2px;
   box-sizing: border-box;
-  border: 1px solid #0d2f8f;
+  border: 2px solid;
+  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
   box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.75),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.35);
+    inset 1px 1px 0 rgba(255, 255, 255, 0.8),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.25);
   color: #fff;
   user-select: none;
   font-family: 'MS Sans Serif', Arial, sans-serif;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  cursor: pointer;
 }
 
 .minimize-btn,
@@ -456,14 +426,15 @@ const startResize = (event, direction) => {
 }
 
 .title-bar-controls button:hover {
-  filter: brightness(1.12);
+  transform: scale(1.08);
+  filter: brightness(1.15);
 }
 
 .title-bar-controls button:active {
-  transform: translateY(1px);
+  transform: scale(0.92);
   box-shadow:
-    inset -1px -1px 0 rgba(255, 255, 255, 0.35),
-    inset 1px 1px 0 rgba(0, 0, 0, 0.35);
+    inset -2px -2px 0 rgba(255, 255, 255, 0.25),
+    inset 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .minimize-btn::before {
@@ -488,10 +459,14 @@ const startResize = (event, direction) => {
 .close-btn::after {
   content: '';
   position: absolute;
-  width: 10px;
+  width: 11px;
   height: 2px;
   background: #fff;
   border-radius: 1px;
+  top: 50%;
+  left: 50%;
+  margin-top: -1px;
+  margin-left: -5.5px;
 }
 
 .close-btn::before {
@@ -554,5 +529,43 @@ const startResize = (event, direction) => {
     transparent 3px
   );
   border-radius: 1px;
+}
+
+/* Minimizar hacia la barra de tareas */
+.window-minimize-enter-active {
+  transition: all 0.3s ease-in;
+}
+
+.window-minimize-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.window-minimize-enter-from {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.window-minimize-leave-to {
+  opacity: 0;
+  transform: scale(0.3) translateY(200px);
+}
+
+/* Restaurar ventana */
+.window-restore-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.window-restore-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.window-restore-enter-from {
+  opacity: 0;
+  transform: scale(0.3) translateY(200px);
+}
+
+.window-restore-leave-to {
+  opacity: 1;
+  transform: scale(1);
 }
 </style>

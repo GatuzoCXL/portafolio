@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-// Module-scoped refs so state is shared across all consumers.
+// Refs de modulo para estado compartido entre consumidores.
 const hasPlayed = ref(false)
 const isEnabled = ref(true)
 const hasInteracted = ref(false)
@@ -39,7 +39,7 @@ export function useXPSound() {
       const audio = reuse ? getCachedAudio(src) : new Audio(src)
       if (!audio) return null
       audio.volume = volume
-      // Best effort. Browsers may block until a user gesture.
+// Best effort — navegadores pueden bloquear sin gesto del usuario.
       if (reuse) {
         audio.currentTime = 0
       }
@@ -59,8 +59,7 @@ export function useXPSound() {
     return audio
   }
 
-  const playShutdownSound = () => {
-    // Shutdown sound should only play if the user already interacted.
+const playShutdownSound = () => {
     if (!hasInteracted.value || !isEnabled.value) return
     return safePlay(SOUND_URLS.shutdown, { volume: 0.45, reuse: true })
   }
@@ -81,7 +80,7 @@ export function useXPSound() {
     const handler = () => {
       hasInteracted.value = true
 
-      // Warm startup/shutdown audio after first gesture.
+// Precalentar audio de inicio/apagado tras primer gesto.
       getCachedAudio(SOUND_URLS.startup)
       getCachedAudio(SOUND_URLS.shutdown)
 

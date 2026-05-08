@@ -18,7 +18,8 @@
           </div>
         </div>
 
-        <div class="progress-container">
+<div class="progress-container">
+          <p v-if="bootMessage" class="boot-message">{{ bootMessage }}</p>
           <div class="progress-track" :style="{ '--progress-blocks': totalBlocks }">
             <div
               v-for="i in totalBlocks"
@@ -48,6 +49,14 @@ const hasStarted = ref(false)
 const totalBlocks = 12
 const activeBlocks = ref(0)
 
+const bootMessages = [
+  { at: 2, msg: 'Cargando servicios de Windows...' },
+  { at: 6, msg: 'Aplicando configuración de dispositivo...' },
+  { at: 10, msg: 'Iniciando escritorio...' },
+]
+
+const bootMessage = ref('')
+
 const startBoot = () => {
   if (hasStarted.value) return
   hasStarted.value = true
@@ -56,11 +65,22 @@ const startBoot = () => {
   const interval = setInterval(() => {
     block += 1
     activeBlocks.value = block
+
+    for (let i = bootMessages.length - 1; i >= 0; i--) {
+      if (block >= bootMessages[i].at) {
+        bootMessage.value = bootMessages[i].msg
+        break
+      }
+    }
+
     if (block >= totalBlocks) {
       clearInterval(interval)
       setTimeout(() => {
-        visible.value = false
-      }, 400)
+        bootMessage.value = 'Listo'
+        setTimeout(() => {
+          visible.value = false
+        }, 400)
+      }, 200)
     }
   }, 210)
 }
@@ -210,6 +230,14 @@ onMounted(() => {
   letter-spacing: 1px;
   margin: -20px 0 0;
   font-family: 'Trebuchet MS', sans-serif;
+}
+
+.boot-message {
+  color: #9bb6dc;
+  font-size: 11px;
+  margin: 0 0 8px 0;
+  font-family: 'Trebuchet MS', sans-serif;
+  min-height: 14px;
 }
 
 .boot-bottom-glow {

@@ -16,9 +16,12 @@ import AboutMe from '@/components/apps/AboutMe.vue'
 import Documents from '@/components/apps/Documents.vue'
 import Projects from '@/components/apps/Projects.vue'
 import Contact from '@/components/apps/Contact.vue'
+import Forum from '@/components/apps/Forum.vue'
 import GamesExplorer from '@/components/apps/GamesExplorer.vue'
 import ProjectDetail from '@/components/apps/ProjectDetail.vue'
 import MusicPlayerApp from '@/components/apps/MusicPlayerApp.vue'
+import Wallpaper from '@/components/apps/Wallpaper.vue'
+import RecycleBin from '@/components/apps/RecycleBin.vue'
 import { useRunLauncherStore } from '@/stores/runLauncher'
 
 const windowsStore = useWindowsStore()
@@ -29,9 +32,12 @@ const appComponents = {
   Documents,
   Projects,
   Contact,
+  Forum,
   GamesExplorer,
   ProjectDetail,
   MusicPlayerApp,
+  Wallpaper,
+  RecycleBin,
 }
 
 const isBooting = ref(true)
@@ -96,14 +102,14 @@ onMounted(() => {
     const isTypingContext =
       targetTag === 'input' || targetTag === 'textarea' || event.target?.isContentEditable
 
-    // Esc closes Run dialog first
+    // Esc cierra Ejecutar primero
     if (event.key === 'Escape' && runLauncher.isOpen) {
       runLauncher.close()
       event.preventDefault()
       return
     }
 
-    // Win+R / Ctrl+R opens Run dialog (outside typing)
+    // Win+R / Ctrl+R abre Ejecutar (fuera de campos de texto)
     const isRunShortcut = (event.metaKey && event.key.toLowerCase() === 'r') ||
       (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'r')
     if (isRunShortcut && !isTypingContext) {
@@ -112,7 +118,7 @@ onMounted(() => {
       return
     }
 
-    // Alt + F4 -> close active window
+    // Alt+F4 cierra ventana activa
     if (event.altKey && event.key === 'F4') {
       const closed = windowsStore.closeActiveWindow()
       if (closed) {
@@ -121,7 +127,7 @@ onMounted(() => {
       return
     }
 
-    // Ctrl + M -> minimize active window
+    // Ctrl+M minimiza ventana activa
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'm') {
       const minimized = windowsStore.minimizeActiveWindow()
       if (minimized) {
@@ -130,7 +136,7 @@ onMounted(() => {
       return
     }
 
-    // Ctrl + W -> close active window (only outside typing contexts)
+    // Ctrl+W cierra ventana activa (fuera de campos de texto)
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'w' && !isTypingContext) {
       const closed = windowsStore.closeActiveWindow()
       if (closed) {

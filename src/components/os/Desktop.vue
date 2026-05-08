@@ -1,7 +1,7 @@
 <template>
   <div
     class="desktop"
-    :style="{ backgroundImage: `url(${desktopBackground})` }"
+    :style="{ backgroundImage: `url(${windowsStore.currentWallpaper.url})` }"
     @click="handleDesktopClick"
     @contextmenu.prevent="openContextMenu"
   >
@@ -44,12 +44,11 @@ const windowsStore = useWindowsStore()
 const clickedId = ref(null)
 const selectedIconId = ref(null)
 const contextMenu = ref({ visible: false, x: 0, y: 0, iconId: null })
-const desktopBackground = assetUrl('wallpapers/ed.jpg')
 
 const desktopIcons = [
   {
     id: 'my-pc',
-    label: 'Mi PC',
+    label: 'Sobre mí',
     icon: assetUrl('icons/my-pc.svg'),
   },
   {
@@ -76,6 +75,16 @@ const desktopIcons = [
     id: 'music-player',
     label: 'Music Studio',
     icon: assetUrl('icons/media-audio.svg'),
+  },
+  {
+    id: 'wallpaper',
+    label: 'Wallpaper',
+    icon: assetUrl('icons/control-panel.svg'),
+  },
+  {
+    id: 'recycle-bin',
+    label: 'Papelera de reciclaje',
+    icon: assetUrl('icons/recycle-bin.svg'),
   },
 ]
 
@@ -151,6 +160,17 @@ onBeforeUnmount(() => {
   background-repeat: no-repeat;
   overflow: hidden;
   user-select: none;
+  position: relative;
+}
+
+.desktop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 24%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 36%);
+  pointer-events: none;
 }
 
 .desktop-icons {
@@ -161,6 +181,7 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   pointer-events: auto;
   z-index: 1;
+  position: relative;
 }
 
 .desktop-icon {
@@ -177,13 +198,14 @@ onBeforeUnmount(() => {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.5);
   user-select: none;
   -webkit-user-select: none;
-  transition: background-color 0.1s;
+  transition: background-color 0.15s ease-out, transform 0.15s ease-out;
   outline: 1px solid transparent;
 }
 
 .desktop-icon:hover {
   background-color: rgba(49, 106, 197, 0.3);
   outline: 1px dotted rgba(255, 255, 255, 0.6);
+  transform: scale(1.05);
 }
 
 .desktop-icon:active,
@@ -192,8 +214,7 @@ onBeforeUnmount(() => {
 }
 
 .desktop-icon.is-selected {
-  background-color: rgba(49, 106, 197, 0.5);
-  outline: 1px dotted rgba(255, 255, 255, 0.75);
+  outline: 1px dotted rgba(255, 255, 255, 0.7);
 }
 
 .icon-img-wrapper {
@@ -202,12 +223,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform var(--transition-normal), filter var(--transition-normal);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .desktop-icon:hover .icon-img-wrapper {
-  filter: drop-shadow(0 0 6px rgba(100, 160, 255, 0.7)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 0 8px rgba(100, 160, 255, 0.7)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .desktop-icon.icon-clicked .icon-img-wrapper {
@@ -233,9 +254,9 @@ onBeforeUnmount(() => {
 .desktop-context-menu {
   position: fixed;
   min-width: 160px;
-  background: #ece9d8;
-  border: 1px solid #0046b8;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #f8fbff 0%, #e5eefb 100%);
+  border: 1px solid #4b6ea1;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   padding: 2px;
   z-index: 12000;
   display: flex;

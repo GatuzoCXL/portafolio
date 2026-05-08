@@ -251,24 +251,22 @@ const hasTooManyRepeats = (value) => /(.)\1{4,}/.test(value)
 const isLikelyProfessionalName = (value) => {
   const cleaned = normalize(value)
 
-  // Solo letras (incluye acentos), espacios, apóstrofe y guión.
+  // Solo letras, apóstrofe, guión y espacios.
   if (!/^[A-Za-zÀ-ÿ'\-\s]+$/.test(cleaned)) {
     return false
   }
 
-  // Longitud razonable
   if (cleaned.length < 4 || cleaned.length > 60) {
     return false
   }
 
   const words = cleaned.split(' ').filter(Boolean)
 
-  // Pedimos al menos nombre y apellido para contexto profesional.
+  // Minimo nombre y apellido para contexto profesional.
   if (words.length < 2) {
     return false
   }
 
-  // Evitar iniciales o palabras de 1 caracter.
   if (words.some((word) => word.length < 2)) {
     return false
   }
@@ -298,7 +296,7 @@ const sendViaEmailJs = async () => {
       reply_to: isValidEmail(form.contact) ? form.contact : EMAIL_TO,
       contact: form.contact,
       to_email: EMAIL_TO,
-      time: new Date().toLocaleString('es-AR', {
+      time: new Date().toLocaleString('es-PE', {
         dateStyle: 'medium',
         timeStyle: 'short',
       }),
@@ -576,13 +574,15 @@ const goBack = () => {
 <style scoped>
 .contact {
   height: 100%;
+  background: linear-gradient(180deg, #eff5fd 0%, #dce8f8 100%);
 }
 
 .contact-header {
-  background: linear-gradient(90deg, #34529b, #4a7fbf);
+  background: linear-gradient(90deg, #1e4e95 0%, #2e74c7 45%, #cde1fb 100%);
   color: white;
   padding: 12px;
-  border-bottom: 2px solid #000080;
+  border-bottom: 1px solid #7fa3ce;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .profile {
@@ -597,6 +597,9 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
 }
 
 .avatar img {
@@ -628,20 +631,21 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
 }
 
 .contact-section {
   padding: 10px;
   border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #f0f6ff;
+  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #f9fcff 0%, #edf4fb 100%);
 }
 
 .contact-section legend {
   padding: 2px 8px;
   border: 1px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #ece9d8;
+  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #e9f2fb 100%);
   font-size: 11px;
   font-weight: 700;
 }
@@ -650,7 +654,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: linear-gradient(180deg, #f6fbff 0%, #edf5ff 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
   border: 1px solid #9bb6d8;
   padding: 8px;
   border-radius: 2px;
@@ -660,7 +664,7 @@ const goBack = () => {
 .form-textarea {
   padding: 6px;
   border: 1px solid #7f9db9;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #f5faff 100%);
   font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
 }
@@ -684,8 +688,9 @@ const goBack = () => {
   width: fit-content;
   padding: 4px 12px;
   border: 1px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: linear-gradient(180deg, #f5fbff, #d9e9ff);
+  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #dfeaf8 100%);
+  color: #123864;
 }
 
 .contact-form button:disabled {
@@ -728,10 +733,10 @@ const goBack = () => {
 .social-button {
   padding: 6px 8px;
   border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
-  background: #dfeaf8;
+  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #e1ebf8 100%);
   text-decoration: none;
-  color: inherit;
+  color: #123864;
   text-align: center;
   display: flex;
   align-items: center;
@@ -740,11 +745,11 @@ const goBack = () => {
 }
 
 .social-button:hover {
-  background: #ecf4ff;
+  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
 }
 
 .social-button:active {
-  border-color: #808080 #ffffff #ffffff #808080;
+  border-color: #8ea8c9 #ffffff #ffffff #8ea8c9;
 }
 
 .social-icon {
@@ -757,7 +762,7 @@ const goBack = () => {
   margin: 0;
   font-size: 10px;
   line-height: 1.4;
-  color: #333;
+  color: #27466f;
   font-style: italic;
 }
 </style>

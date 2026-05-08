@@ -60,19 +60,28 @@
       </section>
 
       <section class="xp-task-group">
-        <header class="xp-task-title">Other Places</header>
+        <header class="xp-task-title">Ubicaciones</header>
         <ul>
-          <li>Mi PC</li>
-          <li>Internet Explorer</li>
-          <li>MSN Messenger</li>
+          <li><button class="xp-task-link" @click="openCv">Mi CV</button></li>
+          <li><button class="xp-task-link" @click="focusCertificates">Mis Certificados</button></li>
+          <li><button class="xp-task-link" @click="jumpToProjects">Proyectos</button></li>
         </ul>
       </section>
 
-      <section class="xp-task-group">
-        <header class="xp-task-title">Details</header>
+        <section class="xp-task-group">
+        <header class="xp-task-title">Detalles</header>
         <ul>
-          <li>Formato: PDF / Imagen</li>
-          <li>Origen: Supabase / Cloudinary</li>
+          <template v-if="selectedCertificate">
+            <li>Formato: {{ selectedCertificateTypeLabel }}</li>
+            <li>Origen: Supabase</li>
+          </template>
+          <template v-else-if="documents.cv">
+            <li>CV: {{ documents.cv.title || 'CV' }}</li>
+            <li>Formato: {{ cvTypeLabel }}</li>
+          </template>
+          <template v-else>
+            <li>Selecciona un certificado para ver sus detalles.</li>
+          </template>
         </ul>
       </section>
     </aside>
@@ -82,24 +91,39 @@
         <legend>Curriculum Vitae</legend>
 
         <div class="doc-card" ref="cvPreviewRef">
-          <div class="doc-head">
-            <p class="doc-title">{{ documents.cv?.title || 'CV' }}</p>
+          <div class="doc-head doc-head--prominent">
+            <div class="doc-head-left">
+              <span class="doc-title">{{ documents.cv?.title || 'CV' }}</span>
+              <p class="doc-meta" v-if="documents.cv?.updatedAt">Actualizado: {{ documents.cv.updatedAt }}</p>
+            </div>
             <span class="format-badge" :class="badgeToneClass(cvTypeLabel)">{{ cvTypeLabel }}</span>
           </div>
-          <p class="doc-meta" v-if="documents.cv?.updatedAt">Actualizado: {{ documents.cv.updatedAt }}</p>
           <div v-if="showingCvPreview && cvPreviewUrl" class="doc-preview-shell">
-            <div v-if="cvPreviewLoading" class="preview-skeleton" aria-hidden="true"></div>
             <transition name="preview-fade" mode="out-in">
-              <iframe
-                v-if="isCvPdf && cvEmbedUrl"
-                :key="`cv-pdf-${cvEmbedUrl}`"
-                class="doc-preview"
-                :class="{ 'is-loading': cvPreviewLoading }"
-                :src="cvEmbedUrl"
-                title="Vista previa de CV"
-                loading="lazy"
+              <DocumentPdfPreview
+                v-if="isCvPdf && cvPreviewUrl"
+                :key="`cv-pdf-${cvPreviewUrl}`"
+                :url="cvPreviewUrl"
+                :title="documents.cv?.title"
+                :max-height="460"
                 @load="onCvPreviewLoaded"
-              ></iframe>
+                @error="onCvPreviewError"
+              >
+                <template #fallback-actions>
+                  <a :href="documents.cv.url" target="_blank" rel="noopener noreferrer" class="doc-link">
+                    Abrir en nueva pestaña
+                  </a>
+                  <a
+                    :href="cvDownloadUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link"
+                    :download="cvFileName"
+                  >
+                    Descargar CV
+                  </a>
+                </template>
+              </DocumentPdfPreview>
               <img
                 v-else-if="isCvImage"
                 :key="`cv-image-${cvPreviewUrl}`"
@@ -132,7 +156,7 @@
           </div>
 
           <div v-if="documents.cv?.url" class="doc-actions">
-            <button class="doc-link doc-link-btn" @click="showCvPreview">Ver aquí</button>
+            <button class="doc-link doc-link-btn" @click="openCvOverlay">Ver aquí</button>
             <a :href="documents.cv.url" target="_blank" rel="noopener noreferrer" class="doc-link">
               Abrir en nueva pestaña
             </a>
@@ -149,7 +173,7 @@
               Copiar enlace
             </button>
           </div>
-          <p v-else class="doc-empty">Aún no hay CV publicado.</p>
+          <p v-else class="doc-empty empty-state-box">Aún no se ha publicado nada.</p>
         </div>
       </fieldset>
 
@@ -157,7 +181,7 @@
         <legend>Certificados</legend>
 
         <div v-if="filteredCertificates.length" class="cert-grid" ref="certsRef">
-          <article v-for="cert in filteredCertificates" :key="cert.id || cert.url" class="cert-card">
+          <article v-for="cert in filteredCertificates" :key="cert.id || cert.url" class="cert-card" :class="{ 'cert-card--selected': certKey(cert) === selectedCertificateKey }">
             <span class="format-badge cert" :class="badgeToneClass(certificateTypeLabel(cert))">{{
               certificateTypeLabel(cert)
             }}</span>
@@ -165,7 +189,7 @@
             <h4>{{ cert.title }}</h4>
             <p>{{ cert.issuer }} · {{ cert.date }}</p>
               <div class="cert-actions">
-                <button class="doc-link doc-link-btn" @click="showCertificatePreview(cert)">Ver aquí</button>
+                <button class="doc-link doc-link-btn" @click="openCertOverlay(cert)">Ver aquí</button>
                 <a :href="cert.url" target="_blank" rel="noopener noreferrer">Abrir en nueva pestaña</a>
                <a
                  :href="toDownloadUrl(cert.url)"
@@ -190,19 +214,31 @@
                 selectedCertificateTypeLabel
               }}</span>
             </div>
-            <div v-if="selectedCertificatePreviewLoading" class="preview-skeleton" aria-hidden="true"></div>
-
             <transition name="preview-fade" mode="out-in">
-              <iframe
-                v-if="isSelectedCertificatePdf && selectedCertificateEmbedUrl"
-                :key="`cert-pdf-${selectedCertificateEmbedUrl}`"
-                class="doc-preview"
-                :class="{ 'is-loading': selectedCertificatePreviewLoading }"
-                :src="selectedCertificateEmbedUrl"
-                :title="`Vista previa de ${selectedCertificate.title}`"
-                loading="lazy"
+              <DocumentPdfPreview
+                v-if="isSelectedCertificatePdf && selectedCertificatePreviewUrl"
+                :key="`cert-pdf-${selectedCertificatePreviewUrl}`"
+                :url="selectedCertificatePreviewUrl"
+                :title="selectedCertificate.title"
+                :max-height="460"
                 @load="onSelectedCertificatePreviewLoaded"
-              ></iframe>
+                @error="onSelectedCertificatePreviewError"
+              >
+                <template #fallback-actions>
+                  <a :href="selectedCertificate.url" target="_blank" rel="noopener noreferrer" class="doc-link">
+                    Abrir en nueva pestaña
+                  </a>
+                  <a
+                    :href="toDownloadUrl(selectedCertificate.url)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="doc-link"
+                    :download="`${(selectedCertificate.title || 'certificado').replace(/\s+/g, '-').toLowerCase()}.pdf`"
+                  >
+                    Descargar
+                  </a>
+                </template>
+              </DocumentPdfPreview>
 
               <img
                 v-else-if="isSelectedCertificateImage"
@@ -218,12 +254,12 @@
               <div v-else key="cert-unavailable" class="preview-unavailable">
                 <p v-if="selectedCertificateInlineError" class="doc-meta">{{ selectedCertificateInlineError }}</p>
                 <p class="doc-meta">No hay preview embebido para este certificado.</p>
-                <p class="doc-empty">Podés abrirlo en nueva pestaña o descargarlo desde acá.</p>
+                <p class="doc-empty">Puedes abrirlo en nueva pestaña o descargarlo desde aquí.</p>
               </div>
             </transition>
 
             <div class="doc-actions" v-if="selectedCertificate.url">
-              <button class="doc-link doc-link-btn" @click="showCertificatePreview(selectedCertificate)">
+              <button class="doc-link doc-link-btn" @click="openCertOverlay(selectedCertificate)">
                 Ver aquí
               </button>
               <a :href="selectedCertificate.url" target="_blank" rel="noopener noreferrer" class="doc-link">
@@ -247,7 +283,7 @@
           </article>
         </div>
 
-        <p v-else class="doc-empty">No hay certificados cargados por el momento.</p>
+        <p v-else class="doc-empty empty-state-box">No hay certificados cargados por el momento.</p>
       </fieldset>
 
       <p v-if="actionFeedback.text" class="feedback-message" :class="actionFeedback.type">
@@ -255,6 +291,67 @@
       </p>
     </main>
     </div>
+
+    <!-- Overlay visor de documentos -->
+    <Teleport to="body">
+      <div
+        v-if="viewerDocumentUrl"
+        ref="viewerOverlayRef"
+        class="viewer-overlay"
+        role="dialog"
+        :aria-label="`Vista previa: ${viewerDocumentTitle}`"
+        @click.self="closeViewerOverlay"
+      >
+        <div class="viewer-modal">
+          <div class="viewer-titlebar">
+            <span class="viewer-title">{{ viewerDocumentTitle || 'Documento' }}</span>
+            <div class="viewer-titlebar-controls">
+              <button
+                class="title-btn close-btn"
+                @click="closeViewerOverlay"
+                aria-label="Cerrar"
+              >×</button>
+            </div>
+          </div>
+          <div class="viewer-body">
+            <p v-if="viewerError" class="preview-unavailable">
+              <span class="doc-meta">{{ viewerError }}</span>
+            </p>
+            <DocumentPdfPreview
+              v-else-if="viewerDocumentUrl"
+              :key="`overlay-pdf-${viewerDocumentUrl}`"
+              :url="viewerDocumentUrl"
+              :title="viewerDocumentTitle"
+              :max-height="600"
+              @load="onViewerLoaded"
+              @error="onViewerError"
+            />
+          </div>
+          <div class="viewer-footer">
+            <a
+              :href="viewerDocumentUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="doc-link"
+            >
+              Abrir en nueva pestaña
+            </a>
+            <a
+              :href="downloadUrl(viewerDocumentUrl)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="doc-link"
+              :download="(viewerDocumentTitle || 'documento').replace(/\s+/g, '-').toLowerCase()"
+            >
+              Descargar
+            </a>
+            <button class="doc-link doc-link-btn" @click="copyLink(viewerDocumentUrl, 'Enlace copiado')">
+              Copiar enlace
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -263,7 +360,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { usePortfolioContent } from '@/composables/usePortfolioContent'
 import { useWindowsStore } from '@/stores/windows'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
-import { assetUrl, downloadUrl, isImageUrl, isPdfUrl } from '@/utils/assetUrl'
+import { assetUrl, downloadUrl, isImageUrl, isPdfUrl, extractRawSupabaseUrl, isSupabaseStorageUrl, pdfProxyUrl } from '@/utils/assetUrl'
+import DocumentPdfPreview from '@/components/apps/DocumentPdfPreview.vue'
 
 const windowsStore = useWindowsStore()
 const { documents, loadContent } = usePortfolioContent()
@@ -279,13 +377,16 @@ const showingCvPreview = ref(true)
 const selectedCertificateKey = ref('')
 const certificateFallbackThumbnail = assetUrl('icons/documents.svg')
 const cvPreviewLoading = ref(true)
-const cvEmbedUrl = ref('')
 const cvInlineError = ref('')
 const selectedCertificatePreviewLoading = ref(true)
-const selectedCertificateEmbedUrl = ref('')
 const selectedCertificateInlineError = ref('')
 const actionFeedback = ref({ type: '', text: '' })
 const CERT_LAST_SELECTED_KEY = 'xp-documents-last-certificate'
+const viewerDocumentUrl = ref('')
+const viewerDocumentTitle = ref('')
+const viewerError = ref('')
+const viewerOverlayRef = ref(null)
+let viewerCleanupTimer = null
 let feedbackTimer = null
 
 const addressSuggestions = computed(() => {
@@ -317,7 +418,13 @@ const filteredCertificates = computed(() => {
   })
 })
 
-const cvPreviewUrl = computed(() => documents.value.cv?.url || '')
+const cvRawUrl = computed(() => documents.value.cv?.url || '')
+const cvPreviewUrl = computed(() => {
+  const raw = resolveUrl(cvRawUrl.value)
+  if (!raw) return ''
+  if (isPdfUrl(raw)) return pdfProxyUrl(raw)
+  return raw
+})
 const isCvPdf = computed(() => isPdfUrl(cvPreviewUrl.value))
 const isCvImage = computed(() => isImageUrl(cvPreviewUrl.value))
 const cvTypeLabel = computed(() => {
@@ -330,69 +437,30 @@ const cvFileName = computed(
   () => `${(documents.value.cv?.title || 'cv').replace(/\s+/g, '-').toLowerCase()}.pdf`
 )
 
-const toDownloadUrl = (url) => downloadUrl(url)
+const urlRecovery = new Map() // url -> estado de resolucion
 
-const revokeCvEmbedUrl = () => {
-  if (cvEmbedUrl.value) {
-    URL.revokeObjectURL(cvEmbedUrl.value)
-    cvEmbedUrl.value = ''
-  }
-}
-
-const resolveCvEmbedUrl = async () => {
-  if (!cvPreviewUrl.value || !isCvPdf.value) {
-    revokeCvEmbedUrl()
-    cvInlineError.value = ''
-    return
-  }
-
-  cvInlineError.value = ''
-
+const validateUrl = async (url) => {
+  if (!url || urlRecovery.has(url)) return
+  urlRecovery.set(url, 'checking')
   try {
-    const response = await fetch(cvPreviewUrl.value)
-    if (!response.ok) throw new Error(`No se pudo cargar el PDF (${response.status}).`)
-
-    const blob = await response.blob()
-    const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' })
-
-    revokeCvEmbedUrl()
-    cvEmbedUrl.value = URL.createObjectURL(pdfBlob)
+    const res = await fetch(url, { method: 'HEAD' })
+    urlRecovery.set(url, res.ok ? 'raw' : 'failed')
   } catch {
-    revokeCvEmbedUrl()
-    cvInlineError.value = 'No se pudo generar vista previa embebida para este PDF.'
+    urlRecovery.set(url, 'failed')
   }
 }
 
-const revokeSelectedCertificateEmbedUrl = () => {
-  if (selectedCertificateEmbedUrl.value) {
-    URL.revokeObjectURL(selectedCertificateEmbedUrl.value)
-    selectedCertificateEmbedUrl.value = ''
+const resolveUrl = (url) => {
+  if (!url) return ''
+  const status = urlRecovery.get(url)
+  if (status === 'failed') {
+    const raw = extractRawSupabaseUrl(url)
+    return raw || url
   }
+  return url
 }
 
-const resolveSelectedCertificateEmbedUrl = async () => {
-  if (!selectedCertificatePreviewUrl.value || !isSelectedCertificatePdf.value) {
-    revokeSelectedCertificateEmbedUrl()
-    selectedCertificateInlineError.value = ''
-    return
-  }
-
-  selectedCertificateInlineError.value = ''
-
-  try {
-    const response = await fetch(selectedCertificatePreviewUrl.value)
-    if (!response.ok) throw new Error(`No se pudo cargar el PDF (${response.status}).`)
-
-    const blob = await response.blob()
-    const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' })
-
-    revokeSelectedCertificateEmbedUrl()
-    selectedCertificateEmbedUrl.value = URL.createObjectURL(pdfBlob)
-  } catch {
-    revokeSelectedCertificateEmbedUrl()
-    selectedCertificateInlineError.value = 'No se pudo generar vista previa embebida para este certificado.'
-  }
-}
+const toDownloadUrl = (url) => downloadUrl(resolveUrl(url))
 
 const certKey = (cert) => cert?.id || cert?.url || cert?.title || ''
 
@@ -404,7 +472,11 @@ const selectedCertificate = computed(() => {
   )
 })
 
-const selectedCertificatePreviewUrl = computed(() => selectedCertificate.value?.url || '')
+const selectedCertificatePreviewUrl = computed(() => {
+  const raw = selectedCertificate.value?.url || ''
+  if (isPdfUrl(raw)) return pdfProxyUrl(raw)
+  return raw
+})
 const isSelectedCertificatePdf = computed(() => isPdfUrl(selectedCertificatePreviewUrl.value))
 const isSelectedCertificateImage = computed(() => isImageUrl(selectedCertificatePreviewUrl.value))
 const selectedCertificateTypeLabel = computed(() => {
@@ -428,13 +500,33 @@ const certificateTypeLabel = (cert) => {
 
 const showCvPreview = async () => {
   showingCvPreview.value = true
-  cvPreviewLoading.value = true
-  await resolveCvEmbedUrl()
-  if (isCvPdf.value && !cvEmbedUrl.value) {
-    cvPreviewLoading.value = false
-  }
   await nextTick()
   cvPreviewRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+const openCvOverlay = () => {
+  const raw = cvRawUrl.value
+  if (raw) {
+    const resolved = isPdfUrl(raw) ? pdfProxyUrl(raw) : raw
+    openViewerOverlay(resolved, documents.value.cv?.title || 'CV', isPdfUrl(raw) ? 'pdf' : 'image')
+  }
+}
+
+const openCertOverlay = (cert) => {
+  if (cert?.url) {
+    const resolved = isPdfUrl(cert.url) ? pdfProxyUrl(cert.url) : cert.url
+    openViewerOverlay(resolved, cert.title || 'Certificado', isPdfUrl(cert.url) ? 'pdf' : 'image')
+  }
+}
+
+const onCvPreviewError = (msg) => {
+  cvInlineError.value = msg
+  cvPreviewLoading.value = false
+}
+
+const onSelectedCertificatePreviewError = (msg) => {
+  selectedCertificateInlineError.value = msg
+  selectedCertificatePreviewLoading.value = false
 }
 
 const showCertificatePreview = async (cert) => {
@@ -476,7 +568,7 @@ const copyLink = async (url, successText) => {
 
     throw new Error('clipboard-unavailable')
   } catch {
-    showFeedback('No se pudo copiar automáticamente. Copialo manualmente.', 'error')
+    showFeedback('No se pudo copiar automáticamente. Cópialo manualmente.', 'error')
   }
 }
 
@@ -587,15 +679,47 @@ const jumpToProjects = () => {
   windowsStore.openWindow('internet-explorer')
 }
 
+const openViewerOverlay = (url, title) => {
+  viewerDocumentUrl.value = url
+  viewerDocumentTitle.value = title
+  viewerError.value = ''
+  nextTick(() => {
+    viewerOverlayRef.value?.classList.add('is-visible')
+  })
+}
+
+const closeViewerOverlay = () => {
+  viewerOverlayRef.value?.classList.remove('is-visible')
+  viewerCleanupTimer = window.setTimeout(() => {
+    viewerDocumentUrl.value = ''
+    viewerDocumentTitle.value = ''
+    viewerError.value = ''
+  }, 300)
+}
+
+const onViewerLoaded = () => {}
+
+const onViewerError = (msg) => {
+  viewerError.value = msg || 'No se pudo cargar el documento.'
+}
+
 onMounted(() => {
-  loadContent()
+  loadContent().then(() => {
+    const urls = []
+    if (documents.value.cv?.url) urls.push(documents.value.cv.url)
+    ;(documents.value.certificates || []).forEach((cert) => {
+      if (cert.url) urls.push(cert.url)
+    })
+    urls.forEach((url) => {
+      if (isSupabaseStorageUrl(url)) validateUrl(url)
+    })
+  })
   window.addEventListener('keydown', handleKeydown)
 })
 
 onBeforeUnmount(() => {
   if (feedbackTimer) window.clearTimeout(feedbackTimer)
-  revokeCvEmbedUrl()
-  revokeSelectedCertificateEmbedUrl()
+  if (viewerCleanupTimer) window.clearTimeout(viewerCleanupTimer)
   window.removeEventListener('keydown', handleKeydown)
 })
 
@@ -629,30 +753,20 @@ watch(selectedCertificateKey, (value) => {
 
 watch(cvPreviewUrl, async () => {
   cvPreviewLoading.value = true
-  await resolveCvEmbedUrl()
   if (!cvPreviewUrl.value || (!isCvPdf.value && !isCvImage.value)) {
     cvPreviewLoading.value = false
     return
-  }
-
-  if (isCvPdf.value && !cvEmbedUrl.value) {
-    cvPreviewLoading.value = false
   }
 })
 
 watch(selectedCertificatePreviewUrl, async () => {
   selectedCertificatePreviewLoading.value = true
-  await resolveSelectedCertificateEmbedUrl()
   if (
     !selectedCertificatePreviewUrl.value ||
     (!isSelectedCertificatePdf.value && !isSelectedCertificateImage.value)
   ) {
     selectedCertificatePreviewLoading.value = false
     return
-  }
-
-  if (isSelectedCertificatePdf.value && !selectedCertificateEmbedUrl.value) {
-    selectedCertificatePreviewLoading.value = false
   }
 })
 </script>
@@ -688,6 +802,28 @@ watch(selectedCertificatePreviewUrl, async () => {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.doc-head--prominent {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.doc-head--prominent .doc-head-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+}
+
+.doc-head--prominent .doc-title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+}
+
+.doc-head--prominent .format-badge {
+  margin-left: auto;
 }
 
 .doc-title {
@@ -759,11 +895,25 @@ watch(selectedCertificatePreviewUrl, async () => {
   border: 1px solid #7f9db9;
   background: #fff;
   padding: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  max-height: 480px;
+  overflow: auto;
+}
+
+/* VuePDF .page llena el ancho del shell */
+.doc-preview-shell :deep(.page) {
+  display: block !important;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .doc-preview {
   width: 100%;
-  min-height: 320px;
+  /* max-height limita el visor PDF al area proporcional dentro del card */
+  max-height: 460px;
   border: 0;
   background: #fff;
 }
@@ -794,16 +944,12 @@ watch(selectedCertificatePreviewUrl, async () => {
   padding: 10px;
   display: grid;
   gap: 8px;
+  min-height: 120px;
+  align-items: center;
+  justify-items: center;
 }
 
-.preview-skeleton {
-  width: 100%;
-  min-height: 320px;
-  border: 1px solid #a9bdd8;
-  background: linear-gradient(110deg, #eef5ff 10%, #dbe8fb 30%, #eef5ff 45%);
-  background-size: 220% 100%;
-  animation: shimmer 1.2s linear infinite;
-}
+
 
 .cert-grid {
   display: grid;
@@ -817,6 +963,17 @@ watch(selectedCertificatePreviewUrl, async () => {
   padding: 8px;
   display: grid;
   gap: 5px;
+}
+
+.cert-card:hover,
+.cert-card--selected {
+  border-color: #7f9db9;
+  background: #eaf2fc;
+}
+
+.cert-card--selected {
+  outline: 2px solid #2a68bf;
+  outline-offset: 1px;
 }
 
 .cert-card img {
@@ -898,5 +1055,173 @@ watch(selectedCertificatePreviewUrl, async () => {
 .preview-fade-enter-from,
 .preview-fade-leave-to {
   opacity: 0;
+}
+
+.preview-status {
+  font-size: 11px;
+  color: #6b82a8;
+  padding: 8px 0;
+  display: block;
+  text-align: center;
+}
+
+.empty-state-box {
+  border: 1px dashed #7f9db9;
+  background: #f8fbff;
+  padding: 16px;
+  text-align: center;
+}
+
+/* ─── Overlay visor de documentos ─── */
+.viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.viewer-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.viewer-modal {
+  border: 2px solid;
+  border-color: #fff #7f9db9 #7f9db9 #fff;
+  background: var(--win-body-bg, #eef5ff);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  width: min(90vw, 820px);
+  max-height: 90vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+.viewer-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 10px;
+  height: 28px;
+  background: linear-gradient(90deg, #7f94ad 0%, #9aacc3 45%, #8ea1b9 100%);
+  border-bottom: 2px solid;
+  border-color: rgba(255, 255, 255, 0.25) rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.viewer-title {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.viewer-titlebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.viewer-titlebar-controls .title-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 20px;
+  border-radius: 2px;
+  border: 2px solid;
+  border-color: #fff #7f9db9 #7f9db9 #fff;
+  cursor: pointer;
+  background: linear-gradient(180deg, #6ea6ff 0%, #2e6bdd 45%, #1d49b5 100%);
+  color: #fff;
+}
+
+.viewer-titlebar-controls .close-btn::before {
+  display: none;
+}
+
+.viewer-titlebar-controls .close-btn {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 400;
+  color: #fff;
+  flex-shrink: 0;
+  width: 22px;
+  height: 20px;
+}
+
+.viewer-titlebar-controls .title-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.viewer-titlebar-controls .title-btn:active:not(:disabled) {
+  box-shadow: inset -2px -2px 0 rgba(255, 255, 255, 0.25), inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.viewer-titlebar-controls .title-btn::before {
+  content: '';
+  width: 8px;
+  height: 2px;
+  background: #fff;
+  border-radius: 1px;
+}
+
+.viewer-body {
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8px;
+  background: #fff;
+  min-height: 0;
+}
+
+.viewer-pdf-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Centrar .page dentro del overlay */
+.viewer-pdf-wrap :deep(.page) {
+  display: block !important;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.viewer-pdf-viewer {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.viewer-page-info {
+  font-size: 10px;
+  color: #475d7d;
+}
+
+.viewer-footer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border-top: 1px solid #7f9db9;
+  background: #eef5ff;
+  flex-shrink: 0;
 }
 </style>

@@ -21,6 +21,15 @@
 
       <div class="start-menu-content">
         <div class="programs-column">
+          <button class="todos-programas" @click="toggleAllPrograms">
+            Todos los Programas
+            <span class="arrow">▶</span>
+          </button>
+          <div v-if="showAllPrograms" class="all-programs-submenu">
+            <button v-for="prog in staticPrograms" :key="prog" class="program-button">
+              {{ prog }}
+            </button>
+          </div>
           <div class="menu-section-title">Programas</div>
           <button
             v-for="program in recentPrograms"
@@ -42,7 +51,7 @@
           </button>
           <button class="system-button" @click="handleControl">
             <img :src="controlPanelIcon" alt="Panel" class="sys-icon" />
-            Panel de Control
+            Configuración
           </button>
           <button class="system-button" @click="handleSearch">
             <img :src="searchIcon" alt="Buscar" class="sys-icon" />
@@ -60,6 +69,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
 import { useSystemDialogStore } from '@/stores/systemDialog'
 import { useRunLauncherStore } from '@/stores/runLauncher'
@@ -79,6 +89,13 @@ const recentPrograms = windowsStore.windows.map((windowItem) => ({
   icon: windowItem.icon,
 }))
 
+const showAllPrograms = ref(false)
+const staticPrograms = ['Accesorios', 'Juegos', 'Internet Explorer', 'Windows Media Player', 'Paint']
+
+const toggleAllPrograms = () => {
+  showAllPrograms.value = !showAllPrograms.value
+}
+
 const openProgram = (windowId) => {
   windowsStore.toggleWindow(windowId)
   windowsStore.closeStartMenu()
@@ -90,12 +107,12 @@ const handleDocuments = async () => {
 }
 
 const handleControl = async () => {
-  await dialog.alert({
-    title: 'Panel de Control',
-    message: 'Este panel está en construcción. Se personalizará próximamente.',
-  })
-  windowsStore.closeStartMenu()
-}
+    await dialog.alert({
+      title: 'Configuración',
+      message: 'Este panel está en construcción. Se personalizará próximamente.',
+    })
+    windowsStore.closeStartMenu()
+  }
 
 const handleSearch = () => {
   runLauncher.open()
@@ -215,17 +232,56 @@ const handleShutdown = async () => {
   text-align: left;
   cursor: pointer;
   font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
+  font-size: var(--font-sm);
   color: black;
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .program-icon {
   width: 16px;
   height: 16px;
   object-fit: contain;
+}
+
+.todos-programas {
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'MS Sans Serif', Arial, sans-serif;
+  font-size: var(--font-sm);
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  transition: background var(--transition-fast);
+}
+
+.todos-programas:hover {
+  background: linear-gradient(90deg, #000080, #1084d7);
+  color: white;
+}
+
+.todos-programas:focus-visible {
+  outline: 1px dotted black;
+  outline-offset: -4px;
+}
+
+.todos-programas .arrow {
+  font-size: 8px;
+  opacity: 0.8;
+}
+
+.all-programs-submenu {
+  background: rgba(0, 0, 128, 0.15);
+  padding: 4px 0;
+  margin: 2px 0;
+  border-radius: 2px;
 }
 
 .program-button:hover {
@@ -244,7 +300,7 @@ const handleShutdown = async () => {
   flex-direction: column;
   gap: 1px;
   padding: 6px;
-  background: linear-gradient(180deg, #deebfb 0%, #cddff6 100%);
+  background: linear-gradient(180deg, #1f57a6 0%, #deebfb 100%);
 }
 
 .system-button {
@@ -254,11 +310,12 @@ const handleShutdown = async () => {
   text-align: left;
   cursor: pointer;
   font-family: 'MS Sans Serif', Arial, sans-serif;
-  font-size: 11px;
+  font-size: var(--font-sm);
   color: black;
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .sys-icon {

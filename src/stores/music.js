@@ -61,7 +61,7 @@ export const useMusicStore = defineStore('music', () => {
           })
         )
       } catch {
-        // ignore persistence failures (private mode, quota, etc.)
+        // Ignorar errores de persistencia (modo privado, cuota, etc.)
       }
     },
     { deep: false }

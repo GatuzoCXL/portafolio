@@ -47,7 +47,7 @@ const { playShutdownSound } = useXPSound()
 onMounted(() => {
   playShutdownSound()
 
-  // Secuencia: pantalla de apagado -> efecto CRT off -> negro permanente.
+  // Apagado → CRT off → negro permanente
   window.setTimeout(() => {
     isPoweringOff.value = true
   }, 1400)

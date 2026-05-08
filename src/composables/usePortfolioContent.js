@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defaultContent } from '@/content/defaultContent'
-import { normalizeAppAssetPath, normalizeStoragePublicUrl } from '@/utils/assetUrl'
+import { normalizeAppAssetPath } from '@/utils/assetUrl'
 
 const clone = (value) => JSON.parse(JSON.stringify(value))
 
@@ -28,27 +28,28 @@ const mergeContent = (incoming) => {
     next.documents = clone(defaultContent.documents)
   }
 
+  // Normalizar payload: cv/certificados top-level van dentro de documents
+  if (next.cv && typeof next.cv === 'object') {
+    next.documents.cv = {
+      ...clone(defaultContent.documents.cv),
+      ...next.cv,
+    }
+    delete next.cv
+  }
+
+  if (Array.isArray(next.certificates) && next.certificates.length) {
+    next.documents.certificates = next.certificates
+    delete next.certificates
+  } else if (!next.documents.certificates || !next.documents.certificates.length) {
+    next.documents.certificates = []
+  }
+
   next.projects = (next.projects || []).map((project) => ({
     ...project,
     icon: normalizeAppAssetPath(project.icon),
   }))
 
-  if (next.documents?.cv) {
-    const normalizedUrl = normalizeStoragePublicUrl(next.documents.cv.url)
-    next.documents.cv = {
-      ...next.documents.cv,
-      url: normalizedUrl,
-    }
-  }
-
-  if (Array.isArray(next.documents?.certificates)) {
-    next.documents.certificates = next.documents.certificates.map((cert) => ({
-      ...cert,
-      url: normalizeStoragePublicUrl(cert.url),
-      thumbnail: normalizeStoragePublicUrl(cert.thumbnail),
-    }))
-  }
-
+  // URLs de Supabase se mantienen sin modificar — Documents.vue resuelve con fallback
   content.value = next
 }
 
@@ -76,7 +77,6 @@ const loadContent = async () => {
       return content.value
     })
     .catch(() => {
-      // Keep local fallback content
       mergeContent(defaultContent)
       error.value = 'No se pudo cargar contenido remoto, usando contenido local.'
       return content.value

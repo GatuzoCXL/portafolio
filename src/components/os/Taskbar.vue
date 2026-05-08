@@ -28,6 +28,11 @@
       </button>
     </div>
 
+    <div class="system-tray">
+      <img :src="traySpeaker" alt="Volumen" title="Volumen" class="tray-icon" />
+      <img :src="trayNetwork" alt="Conexión de red" title="Conexión de red" class="tray-icon" />
+    </div>
+
     <div class="system-clock">
       {{ currentTime }}
     </div>
@@ -42,6 +47,8 @@ import { assetUrl } from '@/utils/assetUrl'
 const windowsStore = useWindowsStore()
 const currentTime = ref('')
 const startIcon = assetUrl('icons/start.svg')
+const traySpeaker = assetUrl('icons/tray-speaker.svg')
+const trayNetwork = assetUrl('icons/tray-network.svg')
 
 const activeWindowId = computed(() => {
   const visibleWindows = windowsStore.openWindows.filter(windowItem => !windowItem.isMinimized)
@@ -122,10 +129,12 @@ onMounted(() => {
   height: 24px;
   font-family: 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
+  transition: filter var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast);
 }
 
 .start-button:hover {
   filter: brightness(1.06);
+  transform: scale(1.02);
 }
 
 .start-button:active {
@@ -178,6 +187,7 @@ onMounted(() => {
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: filter var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast);
 }
 
 .taskbar-icon {
@@ -188,6 +198,7 @@ onMounted(() => {
 
 .taskbar-button:hover {
   filter: brightness(1.08);
+  transform: scale(1.02);
 }
 
 .taskbar-button:active {
@@ -221,5 +232,20 @@ onMounted(() => {
 
 .system-clock {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.system-tray {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.tray-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  opacity: 0.85;
+  cursor: default;
 }
 </style>

@@ -3,6 +3,34 @@ import { ref, computed } from 'vue'
 import { assetUrl } from '@/utils/assetUrl'
 
 const LAYOUT_STORAGE_KEY = 'xp-window-layout-v1'
+const DEFAULT_WALLPAPER_ID = 'bliss'
+
+const wallpaperOptions = [
+  {
+    id: 'bliss',
+    title: 'Bliss',
+    description: 'El clásico de Windows XP.',
+    url: 'https://cdn.neowin.com/news/images/uploaded/2023/06/1686292349_windows_xp_bliss_wallpaper_4k_story.jpg',
+  },
+  {
+    id: 'backrooms',
+    title: 'Backrooms',
+    description: 'Oscuro y extraño.',
+    url: assetUrl('wallpapers/backrooms94.jpg'),
+  },
+  {
+    id: 'ed',
+    title: 'Ed',
+    description: '2011',
+    url: assetUrl('wallpapers/ed.jpg'),
+  },
+  {
+    id: 'yuuka',
+    title: 'Yuuka Punch',
+    description: ':o',
+    url: assetUrl('wallpapers/yuuka-punch.gif'),
+  },
+]
 
 const readSavedLayout = () => {
   try {
@@ -13,14 +41,14 @@ const readSavedLayout = () => {
   }
 }
 
-// Gestión de ventanas: estado, posiciones, z-index y menú de inicio
+// Estado, posiciones, z-index y menu de inicio
 export const useWindowsStore = defineStore('windows', () => {
   const savedLayout = readSavedLayout()
 
   const windows = ref([
     {
       id: 'my-pc',
-      title: 'Mi PC',
+      title: 'Sobre mí',
       icon: assetUrl('icons/my-pc.svg'),
       component: 'AboutMe',
       isOpen: false,
@@ -48,7 +76,7 @@ export const useWindowsStore = defineStore('windows', () => {
       id: 'internet-explorer',
       title: 'Internet Explorer',
       icon: assetUrl('icons/internet-explorer.svg'),
-      component: 'Projects',
+      component: 'Forum',
       isOpen: false,
       isMinimized: false,
       x: 150,
@@ -72,7 +100,7 @@ export const useWindowsStore = defineStore('windows', () => {
     },
     {
       id: 'games-folder',
-      title: 'Carpeta de Juegos',
+      title: 'Juegos',
       icon: assetUrl('icons/games-folder.svg'),
       component: 'GamesExplorer',
       isOpen: false,
@@ -96,15 +124,42 @@ export const useWindowsStore = defineStore('windows', () => {
       height: 560,
       zIndex: 1,
     },
+    {
+      id: 'wallpaper',
+      title: 'Wallpaper',
+      icon: assetUrl('icons/control-panel.svg'),
+      component: 'Wallpaper',
+      isOpen: false,
+      isMinimized: false,
+      x: 180,
+      y: 140,
+      width: 860,
+      height: 620,
+      zIndex: 1,
+    },
+    {
+      id: 'recycle-bin',
+      title: 'Papelera de reciclaje',
+      icon: assetUrl('icons/recycle-bin.svg'),
+      component: 'RecycleBin',
+      isOpen: false,
+      isMinimized: false,
+      x: 220,
+      y: 160,
+      width: 560,
+      height: 420,
+      zIndex: 1,
+    },
   ])
 
   const isStartMenuOpen = ref(false)
   const isShuttingDown = ref(false)
   const maxZIndex = ref(100)
+  const selectedWallpaperId = ref(savedLayout.wallpaperId || DEFAULT_WALLPAPER_ID)
 
-  const MINIMIZE_ANIMATION_MS = 180
+  const MINIMIZE_ANIMATION_MS = 300
 
-  // Restore persisted layout for static windows.
+  // Restaurar layout persistido para ventanas estaticas.
   windows.value = windows.value.map((windowItem) => {
     const saved = savedLayout[windowItem.id]
     if (!saved) return windowItem
@@ -140,9 +195,11 @@ export const useWindowsStore = defineStore('windows', () => {
         return acc
       }, {})
 
+      layout.wallpaperId = selectedWallpaperId.value
+
       window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout))
     } catch {
-      // ignore persistence errors
+      // Ignorar errores de persistencia
     }
   }
 
@@ -263,6 +320,18 @@ export const useWindowsStore = defineStore('windows', () => {
     }
   }
 
+  const setWallpaper = (wallpaperId) => {
+    const wallpaper = wallpaperOptions.find(option => option.id === wallpaperId)
+    if (!wallpaper) return
+
+    selectedWallpaperId.value = wallpaper.id
+    persistLayout()
+  }
+
+  const currentWallpaper = computed(() => {
+    return wallpaperOptions.find(option => option.id === selectedWallpaperId.value) || wallpaperOptions[0]
+  })
+
   const toggleStartMenu = () => {
     isStartMenuOpen.value = !isStartMenuOpen.value
   }
@@ -275,7 +344,7 @@ export const useWindowsStore = defineStore('windows', () => {
     isStartMenuOpen.value = false
     isShuttingDown.value = true
 
-    // Clear any in-flight animation timers to avoid stray state changes.
+    // Limpiar timers de animacion pendientes.
     for (const w of windows.value) {
       w.settleTimeout && clearTimeout(w.settleTimeout)
       w.restoreTimeout && clearTimeout(w.restoreTimeout)
@@ -283,7 +352,6 @@ export const useWindowsStore = defineStore('windows', () => {
   }
 
   const openProjectDetail = (projectId) => {
-    // Buscar o crear ventana de detalles
     let detailWindow = windows.value.find(w => w.id === `project-${projectId}`)
     
     if (!detailWindow) {
@@ -355,5 +423,8 @@ export const useWindowsStore = defineStore('windows', () => {
     openProjectDetail,
     closeActiveWindow,
     minimizeActiveWindow,
+    wallpaperOptions,
+    currentWallpaper,
+    setWallpaper,
   }
 })

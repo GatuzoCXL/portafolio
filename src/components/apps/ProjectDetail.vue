@@ -38,9 +38,17 @@
       </div>
 
       <div class="detail-tech">
-        <h3>Tecnologías</h3>
+        <h3>
+          <span class="tech-section-icon" v-html="techCategoryIcons.tools"></span>
+          Tecnologías
+        </h3>
         <div class="tech-list">
-          <span v-for="tech in project.tech" :key="tech" class="tech-item">
+          <span
+            v-for="tech in project.tech"
+            :key="tech"
+            class="tech-chip"
+            :style="getChipStyle(tech)"
+          >
             {{ tech }}
           </span>
         </div>
@@ -121,6 +129,53 @@ const props = defineProps({
 const selectedImageIndex = ref(null)
 const { getProjectById, loadContent } = usePortfolioContent()
 const project = ref(null)
+
+const chipColors = {
+  frontend: { bg: '#1d4ed8', text: '#fff' },
+  backend: { bg: '#047857', text: '#fff' },
+  mobile: { bg: '#d97706', text: '#fff' },
+  bots: { bg: '#6d28d9', text: '#fff' },
+  other: { bg: '#4b5563', text: '#fff' },
+}
+
+const techToChipCategory = {
+  React: 'frontend',
+  Vue: 'frontend',
+  Angular: 'frontend',
+  'HTML5': 'frontend',
+  'CSS3': 'frontend',
+  JavaScript: 'frontend',
+  'Node.js': 'backend',
+  Python: 'backend',
+  Go: 'backend',
+  'React Native': 'mobile',
+  'Discord.js': 'bots',
+  Electron: 'bots',
+  MongoDB: 'other',
+  Firebase: 'other',
+  Git: 'other',
+}
+
+const getTechCategory = (tech) => {
+  return techToChipCategory[tech] || 'other'
+}
+
+const getChipStyle = (tech) => {
+  const category = getTechCategory(tech)
+  const colors = chipColors[category] || chipColors.other
+  return {
+    background: colors.bg,
+    color: colors.text,
+  }
+}
+
+const techCategoryIcons = {
+  frontend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  backend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+  mobile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+  database: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+  tools: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+}
 
 const currentScreenshot = computed(() => {
   if (!project.value || selectedImageIndex.value === null) {
@@ -253,6 +308,7 @@ onBeforeUnmount(() => {
   height: auto;
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
   cursor: pointer;
   transition: transform 0.2s;
 }
@@ -299,13 +355,25 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 
-.tech-item {
-  background: #000080;
-  color: white;
-  padding: 3px 8px;
-  font-size: 9px;
-  border-radius: 2px;
+.tech-chip {
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 3px;
   white-space: nowrap;
+}
+
+.tech-section-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: #4b5563;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.tech-section-icon :deep(svg) {
+  width: 14px;
+  height: 14px;
 }
 
 .links-list {
@@ -457,5 +525,24 @@ onBeforeUnmount(() => {
   background: rgba(0, 0, 0, 0.55);
   padding: 4px 8px;
   border-radius: 3px;
+}
+
+@media (max-width: 480px) {
+  .screenshots {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .prev-button {
+    left: -36px;
+  }
+
+  .next-button {
+    right: -36px;
+  }
+
+  .nav-button {
+    width: 28px;
+    height: 28px;
+  }
 }
 </style>
