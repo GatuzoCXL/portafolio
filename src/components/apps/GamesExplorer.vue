@@ -130,7 +130,6 @@ iframe {
   border: 0;
 }
 
-/* Tarjeta de juego */
 .game-card {
   display: flex;
   flex-direction: column;

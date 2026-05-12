@@ -31,7 +31,7 @@
         </div>
 
         <p class="boot-tagline">Edicion profesional</p>
-        <p v-if="!hasStarted" class="boot-hint">Haz click o presiona una tecla para iniciar</p>
+        
       </div>
 
       <div class="boot-bottom-glow"></div>
@@ -42,10 +42,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
+const props = defineProps({})
 defineEmits(['done'])
 
 const visible = ref(true)
-const hasStarted = ref(false)
 const totalBlocks = 12
 const activeBlocks = ref(0)
 
@@ -58,9 +58,6 @@ const bootMessages = [
 const bootMessage = ref('')
 
 const startBoot = () => {
-  if (hasStarted.value) return
-  hasStarted.value = true
-
   let block = 0
   const interval = setInterval(() => {
     block += 1
@@ -86,16 +83,7 @@ const startBoot = () => {
 }
 
 onMounted(() => {
-  const once = () => {
-    startBoot()
-    window.removeEventListener('click', once)
-    window.removeEventListener('keydown', once)
-    window.removeEventListener('touchstart', once)
-  }
-
-  window.addEventListener('click', once, { once: true })
-  window.addEventListener('keydown', once, { once: true })
-  window.addEventListener('touchstart', once, { once: true })
+  startBoot()
 })
 </script>
 

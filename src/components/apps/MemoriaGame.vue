@@ -213,7 +213,6 @@ function resetGame() {
   border-color: #88cc88 #338833 #338833 #88cc88;
 }
 
-/* Overlay de victoria */
 .win-overlay {
   position: absolute;
   inset: 0;

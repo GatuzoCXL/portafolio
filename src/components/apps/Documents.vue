@@ -292,7 +292,6 @@
     </main>
     </div>
 
-    <!-- Overlay visor de documentos -->
     <Teleport to="body">
       <div
         v-if="viewerDocumentUrl"
@@ -437,7 +436,7 @@ const cvFileName = computed(
   () => `${(documents.value.cv?.title || 'cv').replace(/\s+/g, '-').toLowerCase()}.pdf`
 )
 
-const urlRecovery = new Map() // url -> estado de resolucion
+const urlRecovery = new Map()
 
 const validateUrl = async (url) => {
   if (!url || urlRecovery.has(url)) return
@@ -1072,7 +1071,6 @@ watch(selectedCertificatePreviewUrl, async () => {
   text-align: center;
 }
 
-/* ─── Overlay visor de documentos ─── */
 .viewer-overlay {
   position: fixed;
   inset: 0;
@@ -1196,7 +1194,6 @@ watch(selectedCertificatePreviewUrl, async () => {
   gap: 6px;
 }
 
-/* Centrar .page dentro del overlay */
 .viewer-pdf-wrap :deep(.page) {
   display: block !important;
   max-width: 100% !important;

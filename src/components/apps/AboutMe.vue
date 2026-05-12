@@ -69,7 +69,6 @@
       </div>
     </fieldset>
 
-    <!-- Proyectos con IoT destacado -->
     <fieldset class="content-section">
       <h3>
         <span class="section-icon">
@@ -174,7 +173,6 @@ const openDocuments = () => {
   background: linear-gradient(180deg, #eef4fd 0%, #dce9fb 100%);
 }
 
-/* Perfil */
 .profile-section {
   padding: 10px 12px;
   border: 2px solid;
@@ -246,7 +244,6 @@ const openDocuments = () => {
   flex-shrink: 0;
 }
 
-/* Secciones de contenido */
 .content-section {
   padding: 8px;
   border: 2px solid;
@@ -299,7 +296,6 @@ h3 {
   margin-bottom: 4px;
 }
 
-/* Skills y badges */
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -353,7 +349,6 @@ h3 {
   border-color: #ffffff #a8c4e0 #a8c4e0 #ffffff;
 }
 
-/* Proyecto IoT destacado */
 .project-highlight {
   padding-left: 8px;
   border-left: 3px solid #1f57a6;
@@ -364,7 +359,6 @@ h3 {
   font-weight: 700;
 }
 
-/* Nota de barra de tareas XP */
 .xp-taskbar-note {
   margin-top: 8px;
   padding: 5px 10px;

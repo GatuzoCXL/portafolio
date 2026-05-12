@@ -10,7 +10,6 @@
   --xp-border-light: #ffffff;
   --xp-border-dark: #7f9db9;
 
-  /* Typography scale */
   --font-xs: 10px;
   --font-sm: 11px;
   --font-base: 12px;
@@ -19,12 +18,10 @@
   --font-xxl: 18px;
   --font-xxxl: 20px;
 
-  /* Line heights */
   --line-height-tight: 1.3;
   --line-height-base: 1.6;
   --line-height-loose: 1.8;
 
-  /* Spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -32,7 +29,6 @@
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
 
-  /* Window chrome */
   --win-border-light: #ffffff;
   --win-border-mid: #a8a8a8;
   --win-border-dark: #1f4a7a;
@@ -40,7 +36,6 @@
   --win-body-bg: #f2f7ff;
   --win-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
 
-  /* Transitions */
   --transition-fast: 80ms ease;
   --transition-normal: 150ms ease-out;
   --transition-slow: 200ms ease-out;
@@ -159,25 +154,37 @@ select {
   animation: icon-click 0.2s ease-out;
 }
 
-/* Scrollbar estilo Windows XP */
-::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+.desktop-shell ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
 }
 
-::-webkit-scrollbar-track {
-  background: #c0c0c0;
-  border: 1px solid #808080;
+.desktop-shell ::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #e9e9e9 0, #f6f6f3 45%, #ffffff 100%);
+  border-left: 1px solid #8f8f8f;
+  border-right: 1px solid #9bbfe0;
+  border-top: 1px solid #c8c8c8;
+  border-bottom: 1px solid #c8c8c8;
 }
 
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #dfdfdf 0%, #c0c0c0 100%);
-  border: 2px solid;
-  border-color: #ffffff #808080 #808080 #ffffff;
+.desktop-shell ::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(90deg, transparent 3px, #c5d8f2 3px, #c5d8f2 4px, transparent 4px, transparent 6px, #c5d8f2 6px, #c5d8f2 7px, transparent 7px, transparent 9px, #c5d8f2 9px, #c5d8f2 10px, transparent 10px),
+    linear-gradient(180deg, #e8f2fc 0%, #c5d8f2 50%, #b8d0ee 100%);
+  border: 1px solid #9bbfe0;
+  border-radius: 2px;
 }
 
-::-webkit-scrollbar-corner {
-  background: #c0c0c0;
+.desktop-shell ::-webkit-scrollbar-button {
+  background: linear-gradient(180deg, #e8f2fc 0%, #c0d8f0 100%);
+  border: 1px solid;
+  border-color: #ffffff #8aaed8 #8aaed8 #ffffff;
+  height: 14px;
+  width: 14px;
+}
+
+.desktop-shell ::-webkit-scrollbar-corner {
+  background: #d7e6fb;
 }
 
 button {
@@ -206,7 +213,6 @@ legend {
   font-weight: 700;
 }
 
-/* Shared XP Explorer layout primitives */
 .xp-page-shell {
   height: 100%;
   display: grid;

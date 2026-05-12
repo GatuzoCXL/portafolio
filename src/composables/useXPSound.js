@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 
-// Refs de modulo para estado compartido entre consumidores.
 const hasPlayed = ref(false)
 const isEnabled = ref(true)
 const hasInteracted = ref(false)
@@ -10,6 +9,7 @@ const SOUND_URLS = {
   startup: 'https://www.myinstants.com/media/sounds/windows-xp-startup.mp3',
   shutdown: 'https://www.myinstants.com/media/sounds/preview_4.mp3',
   click: 'https://www.myinstants.com/media/sounds/clicksoundeffect.mp3',
+  mobileTap: 'https://www.myinstants.com/media/sounds/iphone-original-keyboard-sound.mp3',
 }
 
 const audioCache = new Map()
@@ -46,7 +46,6 @@ export function useXPSound() {
       audio.play().catch(() => {})
       return audio
     } catch {
-      // ignore
       return null
     }
   }
@@ -76,25 +75,36 @@ const playShutdownSound = () => {
     return safePlay(SOUND_URLS.click, { volume: 0.22 })
   }
 
-  const setupFirstInteractionListener = (onFirstInteraction) => {
-    const handler = () => {
+  const playMobileTapSound = () => {
+    if (!hasInteracted.value || !isEnabled.value) return
+
+    const now = Date.now()
+    if (now - lastClickAt < 85) {
+      return
+    }
+
+    lastClickAt = now
+    return safePlay(SOUND_URLS.mobileTap, { volume: 0.22 })
+  }
+
+const setupFirstInteractionListener = (onFirstInteraction) => {
+    const handler = (e) => {
       hasInteracted.value = true
 
-// Precalentar audio de inicio/apagado tras primer gesto.
-      getCachedAudio(SOUND_URLS.startup)
+// Precalentar audio de apagado tras primer gesto.
       getCachedAudio(SOUND_URLS.shutdown)
 
       if (typeof onFirstInteraction === 'function') {
-        onFirstInteraction()
+        onFirstInteraction(e)
       }
       window.removeEventListener('click', handler)
       window.removeEventListener('keydown', handler)
       window.removeEventListener('touchstart', handler)
     }
 
-    window.addEventListener('click', handler, { once: true })
-    window.addEventListener('keydown', handler, { once: true })
-    window.addEventListener('touchstart', handler, { once: true })
+    window.addEventListener('click', handler, { once: true, capture: true })
+    window.addEventListener('keydown', handler, { once: true, capture: true })
+    window.addEventListener('touchstart', handler, { once: true, capture: true })
   }
 
   return {
@@ -105,6 +115,7 @@ const playShutdownSound = () => {
     playStartupSound,
     playShutdownSound,
     playClickSound,
+    playMobileTapSound,
     safePlay,
   }
 }

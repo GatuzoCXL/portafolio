@@ -339,7 +339,6 @@ const handleShutdown = async () => {
   font-weight: bold;
 }
 
-/* Transiciones */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease;

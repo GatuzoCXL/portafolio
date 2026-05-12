@@ -1,48 +1,19 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
-import { useMusicStore } from '@/stores/music'
 import { useXPSound } from '@/composables/useXPSound'
-import Desktop from '@/components/os/Desktop.vue'
-import Taskbar from '@/components/os/Taskbar.vue'
-import StartMenu from '@/components/os/StartMenu.vue'
-import WindowTemplate from '@/components/os/WindowTemplate.vue'
+import { useActiveShell } from '@/composables/useActiveShell'
+import DesktopShell from '@/components/os/DesktopShell.vue'
+import MobileShell from '@/components/mobile/MobileShell.vue'
 import BootScreen from '@/components/os/BootScreen.vue'
 import ShutdownScreen from '@/components/os/ShutdownScreen.vue'
-import MusicWidget from '@/components/os/MusicWidget.vue'
-import SystemDialog from '@/components/os/SystemDialog.vue'
-import RunDialog from '@/components/os/RunDialog.vue'
-import AboutMe from '@/components/apps/AboutMe.vue'
-import Documents from '@/components/apps/Documents.vue'
-import Projects from '@/components/apps/Projects.vue'
-import Contact from '@/components/apps/Contact.vue'
-import Forum from '@/components/apps/Forum.vue'
-import GamesExplorer from '@/components/apps/GamesExplorer.vue'
-import ProjectDetail from '@/components/apps/ProjectDetail.vue'
-import MusicPlayerApp from '@/components/apps/MusicPlayerApp.vue'
-import Wallpaper from '@/components/apps/Wallpaper.vue'
-import RecycleBin from '@/components/apps/RecycleBin.vue'
 import { useRunLauncherStore } from '@/stores/runLauncher'
 
 const windowsStore = useWindowsStore()
-const { setupFirstInteractionListener, playStartupSound, playClickSound } = useXPSound()
-
-const appComponents = {
-  AboutMe,
-  Documents,
-  Projects,
-  Contact,
-  Forum,
-  GamesExplorer,
-  ProjectDetail,
-  MusicPlayerApp,
-  Wallpaper,
-  RecycleBin,
-}
+const { setupFirstInteractionListener, playClickSound, playMobileTapSound, hasInteracted } = useXPSound()
+const { isMobile } = useActiveShell()
 
 const isBooting = ref(true)
-const pendingStartupSound = ref(false)
-const musicStore = useMusicStore()
 const runLauncher = useRunLauncherStore()
 let globalClickHandler = null
 let globalDblClickHandler = null
@@ -50,21 +21,16 @@ let globalKeydownHandler = null
 
 const onBootDone = () => {
   isBooting.value = false
-  if (pendingStartupSound.value) {
-    playStartupSound()
-    pendingStartupSound.value = false
-  }
 }
 
-onMounted(() => {
-  setupFirstInteractionListener(() => {
-    if (isBooting.value) {
-      pendingStartupSound.value = true
-      return
-    }
+watch(isMobile, (mobile) => {
+  if (mobile) {
+    isBooting.value = false
+  }
+}, { immediate: true })
 
-    playStartupSound()
-  })
+onMounted(() => {
+  setupFirstInteractionListener()
 
   const interactiveSelector = [
     'button',
@@ -84,32 +50,31 @@ onMounted(() => {
   const onGlobalClick = (event) => {
     if (windowsStore.isShuttingDown) return
     if (event.target?.closest(interactiveSelector)) {
-      playClickSound()
+      isMobile.value ? playMobileTapSound() : playClickSound()
     }
   }
 
   const onGlobalDblClick = (event) => {
     if (windowsStore.isShuttingDown) return
     if (event.target?.closest('.title-bar, .desktop-icon, .screenshot')) {
-      playClickSound()
+      isMobile.value ? playMobileTapSound() : playClickSound()
     }
   }
 
   const onGlobalKeydown = (event) => {
     if (isBooting.value || windowsStore.isShuttingDown) return
+    if (isMobile.value) return
 
     const targetTag = event.target?.tagName?.toLowerCase()
     const isTypingContext =
       targetTag === 'input' || targetTag === 'textarea' || event.target?.isContentEditable
 
-    // Esc cierra Ejecutar primero
     if (event.key === 'Escape' && runLauncher.isOpen) {
       runLauncher.close()
       event.preventDefault()
       return
     }
 
-    // Win+R / Ctrl+R abre Ejecutar (fuera de campos de texto)
     const isRunShortcut = (event.metaKey && event.key.toLowerCase() === 'r') ||
       (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'r')
     if (isRunShortcut && !isTypingContext) {
@@ -118,7 +83,6 @@ onMounted(() => {
       return
     }
 
-    // Alt+F4 cierra ventana activa
     if (event.altKey && event.key === 'F4') {
       const closed = windowsStore.closeActiveWindow()
       if (closed) {
@@ -127,7 +91,6 @@ onMounted(() => {
       return
     }
 
-    // Ctrl+M minimiza ventana activa
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'm') {
       const minimized = windowsStore.minimizeActiveWindow()
       if (minimized) {
@@ -136,7 +99,6 @@ onMounted(() => {
       return
     }
 
-    // Ctrl+W cierra ventana activa (fuera de campos de texto)
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'w' && !isTypingContext) {
       const closed = windowsStore.closeActiveWindow()
       if (closed) {
@@ -173,39 +135,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div id="windows-xp-os">
-    <BootScreen v-if="isBooting" @done="onBootDone" />
+    <BootScreen v-if="isBooting && !isMobile" @done="onBootDone" />
 
     <ShutdownScreen v-if="!isBooting && windowsStore.isShuttingDown" />
 
-    <template v-if="!isBooting">
-      <Desktop />
-
-      <TransitionGroup name="window">
-        <WindowTemplate
-          v-for="window in windowsStore.windows"
-          v-show="window.isOpen && !window.isMinimized"
-          :key="window.id"
-          :window-id="window.id"
-          :title="window.title"
-          :icon="window.icon"
-          :x="window.x"
-          :y="window.y"
-          :width="window.width"
-          :height="window.height"
-          :z-index="window.zIndex"
-        >
-          <component
-            :is="appComponents[window.component]"
-            :project-id="window.projectId"
-          />
-        </WindowTemplate>
-      </TransitionGroup>
-
-      <Taskbar />
-      <StartMenu />
-      <MusicWidget v-if="musicStore.widgetVisible" @close="musicStore.widgetVisible = false" />
-      <SystemDialog />
-      <RunDialog />
+    <template v-if="!isBooting || isMobile">
+      <DesktopShell v-if="!isMobile" />
+      <MobileShell v-else />
     </template>
   </div>
 </template>

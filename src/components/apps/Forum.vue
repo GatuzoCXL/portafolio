@@ -341,7 +341,6 @@
             </tbody>
           </table>
 
-          <!-- Busqueda -->
           <section v-if="forumView === 'search'" class="search-view">
             <div class="search-header">
               <div class="search-title">Buscar en el archivo</div>
@@ -446,7 +445,6 @@
             </div>
           </section>
 
-          <!-- Perfil -->
           <section v-if="forumView === 'profile'" class="profile-view">
             <div class="profile-header">
               <div class="profile-avatar-lg">L</div>
@@ -538,7 +536,6 @@
               </div>
             </div>
 
-            <!-- Proyectos con IoT destacado -->
             <div class="profile-section-block">
               <div class="profile-section-header">
                 <span class="section-icon">🚀</span>
@@ -629,7 +626,6 @@
             </div>
           </section>
 
-          <!-- Admin -->
           <section v-if="forumView === 'admin'" class="admin-view">
             <div class="admin-locked">
               <div class="admin-lock-icon">🔒</div>
@@ -2547,7 +2543,6 @@ onUnmounted(() => {
   background: #9ca3af;
 }
 
-/* Busqueda */
 .search-view {
   display: flex;
   flex-direction: column;
@@ -2644,7 +2639,6 @@ onUnmounted(() => {
   font-size: 12px;
 }
 
-/* Perfil */
 .profile-view {
   display: flex;
   flex-direction: column;
@@ -2733,7 +2727,6 @@ onUnmounted(() => {
   gap: 6px;
 }
 
-/* Admin */
 .admin-view {
   display: flex;
   flex-direction: column;
@@ -2844,7 +2837,6 @@ onUnmounted(() => {
   border-color: #8ea8c9 #ffffff #ffffff #8ea8c9;
 }
 
-/* Perfil expandido */
 .profile-view {
   display: flex;
   flex-direction: column;
@@ -3085,7 +3077,6 @@ onUnmounted(() => {
   border-radius: 3px;
 }
 
-/* Admin bloqueado */
 .admin-view {
   display: flex;
   flex-direction: column;

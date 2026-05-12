@@ -41,7 +41,6 @@ const readSavedLayout = () => {
   }
 }
 
-// Estado, posiciones, z-index y menu de inicio
 export const useWindowsStore = defineStore('windows', () => {
   const savedLayout = readSavedLayout()
 

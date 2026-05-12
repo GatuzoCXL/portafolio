@@ -531,7 +531,6 @@ const startResize = (event, direction) => {
   border-radius: 1px;
 }
 
-/* Minimizar hacia la barra de tareas */
 .window-minimize-enter-active {
   transition: all 0.3s ease-in;
 }
@@ -550,7 +549,6 @@ const startResize = (event, direction) => {
   transform: scale(0.3) translateY(200px);
 }
 
-/* Restaurar ventana */
 .window-restore-enter-active {
   transition: all 0.3s ease-out;
 }
