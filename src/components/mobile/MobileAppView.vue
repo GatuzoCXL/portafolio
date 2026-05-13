@@ -30,7 +30,7 @@ const appComponents = {
 const appMeta = {
   'my-pc': { label: 'Sobre mi', component: 'AboutMe' },
   'documents': { label: 'Documentos', component: 'Documents' },
-  'internet-explorer': { label: 'Foro', component: 'Forum' },
+  'internet-explorer': { label: 'Foro de Proyectos', component: 'Forum' },
   'messenger': { label: 'Contacto', component: 'Contact' },
   'games-folder': { label: 'Juegos', component: 'MobileGames' },
   'music-player': { label: 'Musica', component: 'MobileMusicView' },

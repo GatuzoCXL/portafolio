@@ -58,7 +58,7 @@ const desktopIcons = [
   },
   {
     id: 'internet-explorer',
-    label: 'Internet Explorer',
+    label: 'Foro de Proyectos',
     icon: assetUrl('icons/internet-explorer.svg'),
   },
   {

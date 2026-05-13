@@ -11,8 +11,6 @@ const emit = defineEmits(['done'])
     </div>
 
     <div class="intro-brand">PORTAFOLIO DROID</div>
-    <div class="intro-subtitle">Entorno móvil retro</div>
-
     <div class="intro-loader" aria-hidden="true">
       <span></span>
       <span></span>

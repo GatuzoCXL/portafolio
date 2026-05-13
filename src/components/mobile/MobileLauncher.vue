@@ -42,7 +42,7 @@ const base = import.meta.env.BASE_URL
 const apps = [
   { id: 'my-pc', label: 'Sobre mí', icon: `${base}icons/mobile/about.svg`, color: '#6bb7ff' },
   { id: 'documents', label: 'Documentos', icon: `${base}icons/mobile/documents.svg`, color: '#8ecf32' },
-  { id: 'internet-explorer', label: 'Foro', icon: `${base}icons/mobile/forum.svg`, color: '#43d7ff' },
+  { id: 'internet-explorer', label: 'Foro de Proyectos', icon: `${base}icons/mobile/forum.svg`, color: '#43d7ff' },
   { id: 'messenger', label: 'Contacto', icon: `${base}icons/mobile/contact.svg`, color: '#ffb84d' },
   { id: 'games-folder', label: 'Juegos', icon: `${base}icons/mobile/games.svg`, color: '#b978ff' },
   { id: 'music-player', label: 'Música', icon: `${base}icons/mobile/music.svg`, color: '#ff6aa9' },

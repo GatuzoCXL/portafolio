@@ -90,7 +90,7 @@ const recentPrograms = windowsStore.windows.map((windowItem) => ({
 }))
 
 const showAllPrograms = ref(false)
-const staticPrograms = ['Accesorios', 'Juegos', 'Internet Explorer', 'Windows Media Player', 'Paint']
+const staticPrograms = ['Accesorios', 'Juegos', 'Foro de Proyectos', 'Windows Media Player', 'Paint']
 
 const toggleAllPrograms = () => {
   showAllPrograms.value = !showAllPrograms.value

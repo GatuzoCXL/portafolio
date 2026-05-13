@@ -14,7 +14,7 @@
         <div class="forum-brand">
           <img :src="logoUrl" alt="Forum" class="forum-brand-icon" />
           <div>
-            <strong>Archivo de Proyectos</strong>
+            <strong>Foro de Proyectos</strong>
             <p>Proyecto personal. Documentación tardía de aplicaciones, bots y otros experimentos digitales.</p>
           </div>
         </div>
@@ -34,7 +34,7 @@
       </div>
 
       <div class="forum-nav">
-        <button class="nav-item" :class="{ active: forumView === 'index' }" @click="goToForum">Foro</button>
+        <button class="nav-item" :class="{ active: forumView === 'index' }" @click="goToForum">Foro de Proyectos</button>
         <button class="nav-item" :class="{ active: forumView === 'search' }" @click="goToSearch">Buscar</button>
         <button class="nav-item" :class="{ active: forumView === 'profile' }" @click="goToProfile">Mi Perfil</button>
         <button class="nav-item" :class="{ active: forumView === 'admin' }" @click="goToAdmin">Admin</button>
@@ -735,11 +735,6 @@ const { projects, loadContent } = usePortfolioContent()
 
 const categories = [
   {
-    id: 'announcements',
-    name: 'Anuncios',
-    description: 'Avisos del portal, mantenimiento y mensajes importantes.',
-  },
-  {
     id: 'web',
     name: 'Desarrollo Web',
     description: 'Sitios, interfaces y experimentos visuales.',
@@ -809,33 +804,6 @@ const getCategoryForProject = (project) => {
   return categories.find(category => category.id === 'personal')
 }
 
-const pinnedThreads = computed(() => [
-  {
-    id: 'sticky-welcome',
-    title: 'Leeme antes de entrar al sótano',
-    author: 'Moderación',
-    date: '04/12/2001 03:33 AM',
-    replies: 12,
-    views: 968,
-    categoryId: 'announcements',
-    categoryName: 'Anuncios',
-    flag: 'fijado',
-    isSticky: true,
-  },
-  {
-    id: 'sticky-rules',
-    title: 'No alimentes al ruido de la pantalla',
-    author: 'KingPantera',
-    date: '04/12/2001 03:31 AM',
-    replies: 6,
-    views: 412,
-    categoryId: 'announcements',
-    categoryName: 'Anuncios',
-    flag: 'alerta',
-    isSticky: true,
-  },
-])
-
 const threads = computed(() => {
   return projects.value.map((project, index) => {
     const category = getCategoryForProject(project)
@@ -857,7 +825,7 @@ const threads = computed(() => {
   })
 })
 
-const allThreads = computed(() => [...pinnedThreads.value, ...threads.value])
+const allThreads = computed(() => threads.value)
 
 const latestCommitByProjectId = ref({})
 

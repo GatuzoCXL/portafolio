@@ -73,7 +73,7 @@ export const useWindowsStore = defineStore('windows', () => {
     },
     {
       id: 'internet-explorer',
-      title: 'Internet Explorer',
+      title: 'Foro de Proyectos',
       icon: assetUrl('icons/internet-explorer.svg'),
       component: 'Forum',
       isOpen: false,

@@ -6,7 +6,7 @@
         <div class="forum-chrome-brand">
           <div class="forum-chrome-icon">A</div>
           <div>
-            <div class="forum-chrome-title">Archivo de Proyectos</div>
+            <div class="forum-chrome-title">Foro de Proyectos</div>
             <div class="forum-chrome-domain">archivo.portafolio.local</div>
           </div>
         </div>
@@ -320,7 +320,6 @@ const selectedImageIndex = ref(null)
 const latestCommitByProjectId = ref({})
 
 const categories = [
-  { id: 'announcements', name: 'Anuncios', description: 'Avisos del portal, mantenimiento y mensajes importantes.' },
   { id: 'web', name: 'Desarrollo Web', description: 'Sitios, interfaces y experimentos visuales.' },
   { id: 'personal', name: 'Proyectos Personales', description: 'Ideas raras, utilidades y demos hechas por gusto.' },
   { id: 'bots', name: 'Bots & Automatización', description: 'Bots, scripts y rutinas automáticas.' },
@@ -373,33 +372,6 @@ const getCategoryForProject = (project) => {
   return categories.find(category => category.id === 'personal')
 }
 
-const pinnedThreads = computed(() => [
-  {
-    id: 'sticky-welcome',
-    title: 'Leeme antes de entrar al sótano',
-    author: 'Moderación',
-    date: '04/12/2001 03:33 AM',
-    replies: 12,
-    views: 968,
-    categoryId: 'announcements',
-    categoryName: 'Anuncios',
-    flag: 'fijado',
-    isSticky: true,
-  },
-  {
-    id: 'sticky-rules',
-    title: 'No alimentes al ruido de la pantalla',
-    author: 'KingPantera',
-    date: '04/12/2001 03:31 AM',
-    replies: 6,
-    views: 412,
-    categoryId: 'announcements',
-    categoryName: 'Anuncios',
-    flag: 'alerta',
-    isSticky: true,
-  },
-])
-
 const threads = computed(() => {
   return projects.value.map((project, index) => {
     const category = getCategoryForProject(project)
@@ -421,7 +393,7 @@ const threads = computed(() => {
   })
 })
 
-const allThreads = computed(() => [...pinnedThreads.value, ...threads.value])
+const allThreads = computed(() => threads.value)
 
 const filteredThreads = computed(() => {
   if (activeCategoryId.value === null) {
