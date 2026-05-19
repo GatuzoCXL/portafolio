@@ -255,6 +255,9 @@ onBeforeUnmount(() => {
   background: #c0c0c0;
   overflow-y: auto;
   font-family: 'MS Sans Serif', Arial, sans-serif;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .detail-content {

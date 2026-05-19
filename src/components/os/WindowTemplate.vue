@@ -2,7 +2,7 @@
   <Transition :name="transitionName">
     <div
       class="window"
-      :class="{ maximized: isMaximized, 'is-active': isActive, 'is-dragging': isDragging }"
+      :class="{ maximized: isMaximized, 'is-active': isActive, 'is-dragging': isDragging, 'is-resizing': isResizing }"
       :style="{
         top: `${dragY}px`,
         left: `${dragX}px`,
@@ -33,6 +33,7 @@
           ></button>
           <button
             class="title-btn maximize-btn"
+            :class="{ 'is-restore': isMaximized }"
             @click.stop="toggleMaximize"
             aria-label="Maximizar/Restaurar ventana"
             :title="isMaximized ? 'Restaurar' : 'Maximizar'"
@@ -47,6 +48,11 @@
       </div>
       <div
         v-if="!isMaximized"
+        class="resize-handle resize-n"
+        @mousedown="startResize($event, 'n')"
+      ></div>
+      <div
+        v-if="!isMaximized"
         class="resize-handle resize-e"
         @mousedown="startResize($event, 'e')"
       ></div>
@@ -54,6 +60,26 @@
         v-if="!isMaximized"
         class="resize-handle resize-s"
         @mousedown="startResize($event, 's')"
+      ></div>
+      <div
+        v-if="!isMaximized"
+        class="resize-handle resize-w"
+        @mousedown="startResize($event, 'w')"
+      ></div>
+      <div
+        v-if="!isMaximized"
+        class="resize-handle resize-ne"
+        @mousedown="startResize($event, 'ne')"
+      ></div>
+      <div
+        v-if="!isMaximized"
+        class="resize-handle resize-nw"
+        @mousedown="startResize($event, 'nw')"
+      ></div>
+      <div
+        v-if="!isMaximized"
+        class="resize-handle resize-sw"
+        @mousedown="startResize($event, 'sw')"
       ></div>
       <div
         v-if="!isMaximized"
@@ -114,6 +140,7 @@ const windowStore = useWindowsStore()
 const windowElement = ref(null)
 const titleBarHandle = ref(null)
 const isMaximized = ref(false)
+const isResizing = ref(false)
 
 const savedX = ref(props.x)
 const savedY = ref(props.y)
@@ -255,25 +282,55 @@ const startResize = (event, direction) => {
   const startY = event.clientY
   const startWidth = currentWidth.value
   const startHeight = currentHeight.value
+  const startLeft = dragX.value
+  const startTop = dragY.value
+  const MIN_WIDTH = 300
+  const MIN_HEIGHT = 150
 
   // Prevenir seleccion de texto durante resize
   document.body.style.userSelect = 'none'
+  isResizing.value = true
 
   const handleMouseMove = (e) => {
     e.preventDefault()
     const deltaX = e.clientX - startX
     const deltaY = e.clientY - startY
 
+    let nextWidth = startWidth
+    let nextHeight = startHeight
+    let nextLeft = startLeft
+    let nextTop = startTop
+
     if (direction.includes('e')) {
-      currentWidth.value = Math.max(300, startWidth + deltaX)
+      nextWidth = Math.max(MIN_WIDTH, startWidth + deltaX)
     }
+
     if (direction.includes('s')) {
-      currentHeight.value = Math.max(150, startHeight + deltaY)
+      nextHeight = Math.max(MIN_HEIGHT, startHeight + deltaY)
     }
+
+    if (direction.includes('w')) {
+      const proposedWidth = startWidth - deltaX
+      nextWidth = Math.max(MIN_WIDTH, proposedWidth)
+      nextLeft = startLeft + (startWidth - nextWidth)
+    }
+
+    if (direction.includes('n')) {
+      const proposedHeight = startHeight - deltaY
+      nextHeight = Math.max(MIN_HEIGHT, proposedHeight)
+      nextTop = startTop + (startHeight - nextHeight)
+    }
+
+    currentWidth.value = nextWidth
+    currentHeight.value = nextHeight
+    dragX.value = nextLeft
+    dragY.value = nextTop
   }
 
   const handleMouseUp = () => {
     document.body.style.userSelect = ''
+    isResizing.value = false
+    windowStore.updateWindowPosition(props.windowId, Math.round(dragX.value), Math.round(dragY.value))
     windowStore.updateWindowSize(props.windowId, currentWidth.value, currentHeight.value)
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
@@ -290,11 +347,10 @@ const startResize = (event, direction) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 2px solid;
-  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+  padding: 0;
+  border-radius: 8px 8px 0 0;
+  background: #0831d9;
   box-shadow: var(--win-shadow);
-  border-radius: 6px 6px 0 0;
-  background: var(--win-body-bg);
   user-select: none;
   -webkit-user-select: none;
   transition:
@@ -303,72 +359,143 @@ const startResize = (event, direction) => {
     width 0.12s ease,
     height 0.12s ease,
     box-shadow 0.15s ease-out,
-    border-color 0.15s ease-out;
+    background 0.15s ease-out;
+}
+
+.window::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.window.is-dragging,
+.window.is-resizing {
+  transition: none;
 }
 
 .window.is-dragging {
-  transition: none;
   cursor: move;
   will-change: top, left;
+}
+
+.window.is-resizing {
+  will-change: top, left, width, height;
 }
 
 .window.maximized {
   border-radius: 0;
 }
 
+.window.maximized::before {
+  border-radius: 0;
+}
+
+.window:not(.is-active) {
+  background: #6582f5;
+}
+
 .window.is-active {
-  box-shadow: 0 0 0 1px rgba(88, 154, 245, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 24, 115, 0.45);
 }
 
 .title-bar {
+  position: relative;
   display: flex;
   align-items: center;
   user-select: none;
   -webkit-user-select: none;
-  height: 28px;
-  padding: 0 4px 0 8px;
+  height: 31px;
+  margin: 2px 2px 0;
+  padding: 0 4px 0 6px;
   background: var(--win-title-bg);
-  border-bottom: 2px solid;
-  border-color: rgba(255, 255, 255, 0.25) rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.15);
+  border-radius: 5px 5px 0 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset -1px 0 0 rgba(0, 43, 153, 0.5);
   touch-action: none;
 }
 
+.title-bar::before,
+.title-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 15px;
+  pointer-events: none;
+}
+
+.title-bar::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(22, 56, 230, 0.95) 0%, transparent 100%);
+  opacity: 0.95;
+}
+
+.title-bar::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(22, 56, 230, 0.95) 0%, transparent 100%);
+  opacity: 0.85;
+}
+
 .title-bar.inactive {
-  background: linear-gradient(90deg, #7f94ad 0%, #9aacc3 45%, #8ea1b9 100%);
+  background: linear-gradient(
+    to bottom,
+    #7697e7 0%,
+    #7e9ee3 3%,
+    #94afe8 6%,
+    #97b4e9 8%,
+    #82a5e4 14%,
+    #7c9fe2 17%,
+    #7996de 25%,
+    #7b99e1 56%,
+    #82a9e9 81%,
+    #80a5e7 89%,
+    #7b96e1 94%,
+    #7a93df 97%,
+    #abbae3 100%
+  );
+}
+
+.title-bar.inactive::before,
+.title-bar.inactive::after {
+  opacity: 0.4;
 }
 
 .title-bar.inactive .title-bar-text {
-  opacity: 0.7;
+  opacity: 0.78;
 }
 
-.title-bar.inactive .minimize-btn,
-.title-bar.inactive .maximize-btn {
-  filter: grayscale(0.6);
-}
-
-.title-bar.inactive .close-btn {
-  filter: grayscale(0.4);
+.title-bar.inactive .title-btn {
+  opacity: 0.72;
 }
 
 .title-bar-text {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
   color: #fff;
-  font-size: var(--font-lg);
+  font-size: 12px;
   font-weight: 700;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.15px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
 }
 
 .title-icon {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -377,19 +504,38 @@ const startResize = (event, direction) => {
   flex: 1;
   overflow: auto;
   min-height: 0;
+  margin: 0 2px 2px;
   border: 1px solid;
   border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
+  border-top: 0;
   background: var(--win-body-bg);
-  padding: var(--spacing-md);
+  padding: 0;
+}
+
+.window.maximized .title-bar,
+.window.maximized .window-body {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.window.maximized .title-bar {
+  margin-top: 0;
+}
+
+.window.maximized .window-body {
+  margin-bottom: 0;
 }
 
 .title-bar-controls {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 1px;
+  margin-top: -1px;
 }
 
-.title-bar-controls button {
+.title-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -397,76 +543,101 @@ const startResize = (event, direction) => {
   width: 22px;
   min-width: 22px;
   max-width: 22px;
-  height: 20px;
-  min-height: 20px;
-  max-height: 20px;
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
   padding: 0;
-  border-radius: 2px;
+  border: 1px solid #fff;
+  border-radius: 3px;
   box-sizing: border-box;
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.8),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.25);
   color: #fff;
   user-select: none;
   font-family: 'MS Sans Serif', Arial, sans-serif;
-  transition: transform var(--transition-fast), filter var(--transition-fast);
+  transition: filter var(--transition-fast);
   cursor: pointer;
 }
 
 .minimize-btn,
 .maximize-btn {
-  background: linear-gradient(180deg, #6ea6ff 0%, #2e6bdd 45%, #1d49b5 100%);
+  box-shadow: inset 0 -1px 2px 1px #4646ff;
+  background-image: radial-gradient(
+    circle at 90% 90%,
+    #0054e9 0%,
+    #2263d5 55%,
+    #4479e4 70%,
+    #a3bbec 90%,
+    white 100%
+  );
 }
 
 .close-btn {
-  border-color: #8a241b;
-  background: linear-gradient(180deg, #ffae9c 0%, #ef5d4b 45%, #cc2d1f 100%);
+  box-shadow: inset 0 -1px 2px 1px #da4600;
+  background-image: radial-gradient(
+    circle at 90% 90%,
+    #cc4600 0%,
+    #dc6527 55%,
+    #cd7546 70%,
+    #ffccb2 90%,
+    white 100%
+  );
 }
 
-.title-bar-controls button:hover {
-  transform: scale(1.08);
-  filter: brightness(1.15);
+.title-btn:hover {
+  filter: brightness(1.18);
 }
 
-.title-bar-controls button:active {
-  transform: scale(0.92);
-  box-shadow:
-    inset -2px -2px 0 rgba(255, 255, 255, 0.25),
-    inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+.title-btn:hover:active {
+  filter: brightness(0.9);
 }
 
 .minimize-btn::before {
   content: '';
+  position: absolute;
+  left: 5px;
+  top: 13px;
   width: 8px;
-  height: 2px;
+  height: 3px;
   background: #fff;
-  border-radius: 1px;
-  margin-top: 4px;
 }
 
 .maximize-btn::before {
   content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  box-shadow: inset 0 3px white, inset 0 0 0 1px white;
+}
+
+.maximize-btn.is-restore::before {
+  left: 7px;
+  top: 4px;
   width: 8px;
-  height: 7px;
-  border: 1px solid #fff;
-  box-sizing: border-box;
-  border-top-width: 2px;
+  height: 8px;
+  box-shadow: inset 0 2px white, inset 0 0 0 1px white;
+}
+
+.maximize-btn.is-restore::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  background-color: #136dff;
+  box-shadow: inset 0 2px white, inset 0 0 0 1px white, 1px -1px #136dff;
 }
 
 .close-btn::before,
 .close-btn::after {
   content: '';
   position: absolute;
-  width: 11px;
-  height: 2px;
+  left: 9px;
+  top: 2px;
+  width: 2px;
+  height: 16px;
   background: #fff;
-  border-radius: 1px;
-  top: 50%;
-  left: 50%;
-  margin-top: -1px;
-  margin-left: -5.5px;
 }
 
 .close-btn::before {
@@ -480,37 +651,80 @@ const startResize = (event, direction) => {
 .resize-handle {
   position: absolute;
   background: transparent;
-  opacity: 0.35;
+  opacity: 0.2;
   transition: opacity 0.12s ease;
 }
 
-.window:hover .resize-handle {
-  opacity: 0.75;
+.window:hover .resize-handle,
+.window.is-resizing .resize-handle {
+  opacity: 0.9;
+}
+
+.resize-n,
+.resize-s {
+  left: 10px;
+  right: 10px;
+  height: 7px;
+  cursor: ns-resize;
+}
+
+.resize-n {
+  top: 0;
+  background: linear-gradient(180deg, rgba(56, 120, 210, 0.35) 0%, transparent 100%);
+}
+
+.resize-e,
+.resize-w {
+  top: 10px;
+  bottom: 10px;
+  width: 7px;
+  cursor: ew-resize;
 }
 
 .resize-e {
   right: 0;
-  top: 0;
-  bottom: 0;
-  width: 7px;
-  cursor: ew-resize;
   background: linear-gradient(90deg, transparent 0%, rgba(56, 120, 210, 0.35) 100%);
 }
 
 .resize-s {
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 7px;
-  cursor: ns-resize;
   background: linear-gradient(180deg, transparent 0%, rgba(56, 120, 210, 0.35) 100%);
+}
+
+.resize-w {
+  left: 0;
+  background: linear-gradient(90deg, rgba(56, 120, 210, 0.35) 0%, transparent 100%);
+}
+
+.resize-ne,
+.resize-nw,
+.resize-se,
+.resize-sw {
+  width: 18px;
+  height: 18px;
+}
+
+.resize-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
 }
 
 .resize-se {
   bottom: 0;
   right: 0;
-  width: 18px;
-  height: 18px;
   cursor: nwse-resize;
   display: flex;
   align-items: flex-end;
@@ -532,11 +746,11 @@ const startResize = (event, direction) => {
 }
 
 .window-minimize-enter-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.12s ease-in;
 }
 
 .window-minimize-leave-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.12s ease-in;
 }
 
 .window-minimize-enter-from {
@@ -550,11 +764,11 @@ const startResize = (event, direction) => {
 }
 
 .window-restore-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.12s ease-out;
 }
 
 .window-restore-leave-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.12s ease-out;
 }
 
 .window-restore-enter-from {

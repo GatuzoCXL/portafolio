@@ -7,7 +7,7 @@
           <div class="forum-chrome-icon">A</div>
           <div>
             <div class="forum-chrome-title">Foro de Proyectos</div>
-            <div class="forum-chrome-domain">archivo.portafolio.local</div>
+            <div class="forum-chrome-domain">x7r9p2portfolio.onion</div>
           </div>
         </div>
         <div class="forum-chrome-hint">

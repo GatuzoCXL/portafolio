@@ -3,7 +3,17 @@
     <transition name="fade">
       <div v-if="runStore.isOpen" class="run-overlay" @click="runStore.close()">
         <div class="run-window" @click.stop>
-          <div class="run-titlebar">Run</div>
+          <div class="run-titlebar">
+            <span class="title-bar-text">Run</span>
+            <div class="title-bar-controls">
+              <button
+                class="title-btn close-btn"
+                @click.stop="runStore.close()"
+                aria-label="Close"
+                title="Cerrar"
+              ></button>
+            </div>
+          </div>
           <div class="run-body">
             <p>Type the name of a program, folder, document, or Internet resource.</p>
 
@@ -141,20 +151,44 @@ watch(
 
 .run-window {
   width: min(420px, calc(100vw - 20px));
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
   background: #ece9d8;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px #0831d9, 0 4px 12px rgba(16, 63, 154, 0.34);
+  border-radius: 8px 7px 0 0;
+  overflow: hidden;
 }
 
 .run-titlebar {
-  height: 24px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  user-select: none;
+  height: 28px;
+  padding: 3px 5px 3px 3px;
+  background: var(--win-title-bg);
+  border-top: 1px solid #0831d9;
+  border-left: 1px solid #0831d9;
+  border-right: 1px solid #001ea0;
+  border-radius: 8px 7px 0 0;
+}
+
+.title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
   color: #fff;
+  font-size: var(--font-lg);
   font-weight: 700;
-  background: linear-gradient(90deg, #0a4ca0 0%, #2f7ad2 45%, #2a67be 100%);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+.title-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
 }
 
 .run-body {

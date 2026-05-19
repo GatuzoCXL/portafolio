@@ -72,12 +72,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMusicStore } from '@/stores/music'
-import { assetUrl } from '@/utils/assetUrl'
+import { xpIcon } from '@/utils/xpIcons'
 
 defineEmits(['close'])
 
 const musicStore = useMusicStore()
-const musicIcon = assetUrl('icons/media-audio.svg')
+const musicIcon = xpIcon('media-audio')
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 const PLAYLIST_ID = 'PLdutKNs0aaYFwLGTFMGFyCEYeknDFYZXU'
@@ -417,22 +417,38 @@ onBeforeUnmount(() => {
 }
 
 .close-widget {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #6a1d1d;
-  background: linear-gradient(180deg, #ffb4a6, #e54f3d);
   position: relative;
+  width: 21px;
+  min-width: 21px;
+  max-width: 21px;
+  height: 21px;
+  min-height: 21px;
+  max-height: 21px;
+  padding: 0;
+  border: 1px solid #ffffff;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background-image: radial-gradient(
+    circle at 90% 90%,
+    #cc4600 0%,
+    #dc6527 55%,
+    #cd7546 70%,
+    #ffccb2 90%,
+    white 100%
+  );
+  box-shadow: inset 0 -1px 2px 1px #da4600;
+  flex: 0 0 21px;
 }
 
 .close-widget::before,
 .close-widget::after {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 2px;
+  left: 9px;
+  top: 2px;
+  width: 2px;
+  height: 14px;
   background: #fff;
-  top: 7px;
-  left: 4px;
 }
 
 .close-widget::before {

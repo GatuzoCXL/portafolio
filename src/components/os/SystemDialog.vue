@@ -4,8 +4,15 @@
       <div v-if="dialogStore.isOpen" class="dialog-overlay" @click="onOverlayClick">
         <div class="dialog-window" role="dialog" aria-modal="true" @click.stop>
           <div class="dialog-titlebar">
-            <span>{{ dialogStore.title }}</span>
-            <button class="x" @click="cancel">×</button>
+            <span class="title-bar-text">{{ dialogStore.title }}</span>
+            <div class="title-bar-controls">
+              <button
+                class="title-btn close-btn"
+                @click.stop="cancel"
+                aria-label="Close"
+                title="Cerrar"
+              ></button>
+            </div>
           </div>
 
           <div class="dialog-body">
@@ -25,10 +32,10 @@
 
 <script setup>
 import { useSystemDialogStore } from '@/stores/systemDialog'
-import { assetUrl } from '@/utils/assetUrl'
+import { xpIcon } from '@/utils/xpIcons'
 
 const dialogStore = useSystemDialogStore()
-const dialogIcon = assetUrl('icons/messenger.svg')
+const dialogIcon = xpIcon('messenger')
 
 const accept = () => {
   dialogStore.close(true)
@@ -61,31 +68,45 @@ const onOverlayClick = () => {
 .dialog-window {
   width: min(380px, calc(100vw - 20px));
   background: #ece9d8;
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px #0831d9, 0 4px 12px rgba(16, 63, 154, 0.34);
+  border-radius: 8px 7px 0 0;
   font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
   font-size: 11px;
+  overflow: hidden;
 }
 
 .dialog-titlebar {
-  height: 24px;
-  background: linear-gradient(90deg, #0a4ca0 0%, #2f7ad2 45%, #2a67be 100%);
-  color: white;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 4px 0 8px;
-  font-weight: 700;
+  user-select: none;
+  height: 28px;
+  padding: 3px 5px 3px 3px;
+  background: var(--win-title-bg);
+  border-top: 1px solid #0831d9;
+  border-left: 1px solid #0831d9;
+  border-right: 1px solid #001ea0;
+  border-radius: 8px 7px 0 0;
 }
 
-.x {
-  width: 20px;
-  height: 18px;
-  border: 1px solid #8a241b;
-  background: linear-gradient(180deg, #ffae9c 0%, #ef5d4b 45%, #cc2d1f 100%);
+.title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
   color: #fff;
-  line-height: 1;
+  font-size: var(--font-lg);
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+.title-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
 }
 
 .dialog-body {

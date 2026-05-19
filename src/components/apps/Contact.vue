@@ -1,768 +1,520 @@
 <template>
-  <div class="contact xp-window-frame">
-    <div class="xp-explorer-chrome">
-      <div class="xp-menu-row">
-        <span class="xp-menu-item">File</span>
-        <span class="xp-menu-item">Edit</span>
-        <span class="xp-menu-item">View</span>
-        <span class="xp-menu-item">Favorites</span>
-        <span class="xp-menu-item">Tools</span>
-        <span class="xp-menu-item">Help</span>
-      </div>
-      <div class="xp-toolbar-row">
-        <button class="xp-tool-btn back" @click="goBack">Back</button>
-        <button class="xp-tool-btn search" @click="focusAddress">Search</button>
-        <button class="xp-tool-btn folders">Folders</button>
-      </div>
-      <div class="xp-address-row">
-        <span class="xp-address-label">Address</span>
-        <div class="xp-suggest-wrapper">
-          <input
-            ref="addressRef"
-            v-model="address"
-            class="xp-address-input"
-            type="text"
-            @focus="showSuggestions = true"
-            @blur="hideSuggestionsSoon"
-            @keydown.down.prevent="moveSuggestion(1)"
-            @keydown.up.prevent="moveSuggestion(-1)"
-            @keydown.enter.prevent="handleEnter"
-            @keydown.tab.prevent="completeWithHighlighted"
-            @keydown.esc.prevent="showSuggestions = false"
-          />
-          <div v-if="showSuggestions && filteredSuggestions.length" class="xp-suggestions">
-            <div
-              v-for="(item, idx) in filteredSuggestions"
-              :key="item"
-              class="xp-suggestion-item"
-              :class="{ active: idx === selectedSuggestionIndex }"
-              @mouseenter="selectedSuggestionIndex = idx"
-              @mousedown.prevent="pickSuggestion(item)"
-            >
-              {{ item }}
-            </div>
+  <div class="contact">
+    <XpWindowFrame>
+      <template #sidebar>
+        <section class="xp-task-group">
+          <div class="xp-task-title">Tareas</div>
+          <ul>
+            <li><button class="xp-task-link" @click="scrollToProfile">Ver perfil</button></li>
+            <li><button class="xp-task-link" @click="scrollToContact">Ver contactos</button></li>
+            <li><button class="xp-task-link" @click="scrollToAvailability">Ver disponibilidad</button></li>
+          </ul>
+        </section>
+
+        <section class="xp-task-group">
+          <div class="xp-task-title">Accesos</div>
+          <ul>
+            <li><button class="xp-task-link" @click="openExternal('github')">GitHub</button></li>
+            <li><button class="xp-task-link" @click="openExternal('linkedin')">LinkedIn</button></li>
+            <li><button class="xp-task-link" @click="openDocuments">Mis Documentos</button></li>
+          </ul>
+        </section>
+      </template>
+
+      <div class="msn-shell">
+        <header class="msn-topbar">
+          <div class="msn-menu-row">
+            <span>File</span>
+            <span>Edit</span>
+            <span>Actions</span>
+            <span>Tools</span>
+            <span>Help</span>
           </div>
+          <div class="msn-toolbar-row">
+            <button class="msn-tool-btn" @click="openExternal('linkedin')">
+              <img :src="linkedinIcon" alt="LinkedIn" />
+              <span>Perfil</span>
+            </button>
+            <button class="msn-tool-btn" @click="openDocuments">
+              <img :src="documentsIcon" alt="Documentos" />
+              <span>CV</span>
+            </button>
+            <button class="msn-tool-btn" @click="openExternal('github')">
+              <img :src="githubIcon" alt="GitHub" />
+              <span>Repos</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="msn-layout">
+          <section ref="profileSectionRef" class="msn-main-panel">
+            <div class="conversation-card">
+              <div class="conversation-head">
+                <img :src="messengerIcon" alt="Messenger" class="conversation-avatar" />
+                <div>
+                  <strong>{{ profile.displayName }}</strong>
+                  <p>{{ profile.personalMessage }}</p>
+                </div>
+              </div>
+
+              <div class="conversation-log">
+                <div v-for="item in timeline" :key="item.label" class="log-line">
+                  <span class="log-bullet">●</span>
+                  <div>
+                    <strong>{{ item.label }}</strong>
+                    <p>{{ item.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="nudge-strip">
+                <span>
+                  Consejo rápido:
+                  <button class="inline-link" @click="openProjects">Proyectos</button>
+                  y
+                  <button class="inline-link" @click="openDocuments">Mis Documentos</button>
+                  son el mejor punto de entrada si deseas una vista general.
+                </span>
+              </div>
+            </div>
+
+            <section ref="contactSectionRef" class="profile-card">
+              <div class="profile-card-head">
+                <strong>Tarjeta de contacto</strong>
+                <span>{{ profile.city }}</span>
+              </div>
+              <div class="contact-grid">
+                <button class="contact-tile" @click="openMail">
+                  <span class="contact-label">Correo</span>
+                  <span class="contact-value">{{ profile.email }}</span>
+                </button>
+                <button class="contact-tile" @click="openWhatsApp(profile.phonePrimary)">
+                  <span class="contact-label">WhatsApp 1</span>
+                  <span class="contact-value">{{ profile.phonePrimary }}</span>
+                </button>
+                <button class="contact-tile" @click="openWhatsApp(profile.phoneSecondary)">
+                  <span class="contact-label">WhatsApp 2</span>
+                  <span class="contact-value">{{ profile.phoneSecondary }}</span>
+                </button>
+                <button class="contact-tile" @click="openLinkedIn">
+                  <span class="contact-label">LinkedIn</span>
+                  <span class="contact-value">{{ profile.linkedinLabel }}</span>
+                </button>
+                <button class="contact-tile" @click="openGitHub">
+                  <span class="contact-label">GitHub</span>
+                  <span class="contact-value">{{ profile.githubLabel }}</span>
+                </button>
+                <button class="contact-tile" @click="openDocuments">
+                  <span class="contact-label">Documentos</span>
+                  <span class="contact-value">CV y certificados</span>
+                </button>
+              </div>
+            </section>
+
+            <section ref="availabilitySectionRef" class="status-card">
+              <div class="status-row">
+                <span class="status-dot"></span>
+                <div>
+                  <strong>Estado actual</strong>
+                  <p>{{ profile.availability }}</p>
+                </div>
+              </div>
+              <ul class="status-list">
+                <li>Respuesta preferida: correo o WhatsApp.</li>
+                <li>También disponible por LinkedIn para conversaciones profesionales.</li>
+                <li>Zona horaria: Perú (GMT-5).</li>
+              </ul>
+            </section>
+          </section>
+
+          <aside class="msn-side-panel">
+            <div class="display-box">
+              <img :src="messengerIcon" alt="Avatar principal" />
+            </div>
+            <div class="display-box secondary">
+              <img :src="userAvatarIcon" alt="Avatar secundario" />
+            </div>
+          </aside>
         </div>
-        <button class="xp-tool-btn go-btn" @click="runAddressAction">Go</button>
-        <button class="xp-tool-btn xp-address-jump" @click="openDocuments">Docs</button>
       </div>
-    </div>
-
-    <div class="xp-page-shell">
-    <aside class="xp-sidebar-panel">
-      <section class="xp-task-group">
-        <div class="xp-task-title">Contact Tasks</div>
-        <ul>
-          <li><button class="xp-task-link" @click="focusForm">Enviar solicitud laboral</button></li>
-          <li><button class="xp-task-link" @click="focusContactField">Compartir email o teléfono</button></li>
-          <li><button class="xp-task-link" @click="showAvailability">Consultar disponibilidad</button></li>
-        </ul>
-      </section>
-
-      <section class="xp-task-group">
-        <div class="xp-task-title">Other Places</div>
-        <ul>
-          <li><button class="xp-task-link" @click="openExternal('github')">GitHub</button></li>
-          <li><button class="xp-task-link" @click="openExternal('linkedin')">LinkedIn</button></li>
-          <li><button class="xp-task-link" @click="openDocuments">Mis Documentos</button></li>
-        </ul>
-      </section>
-    </aside>
-
-    <main class="xp-main-panel">
-    <div class="contact-header">
-      <div class="profile">
-        <div class="avatar"><img :src="userAvatarIcon" alt="Avatar" /></div>
-        <div class="profile-text">
-          <strong>Hola</strong>
-          <p>Gracias por visitar mi portafolio</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="contact-content" ref="formSectionRef">
-      <fieldset class="contact-section">
-        <legend>Contacto Directo</legend>
-        <div class="contact-form">
-          <input
-            v-model="form.name"
-            type="text"
-            placeholder="Tu nombre"
-            class="form-input"
-          />
-          <input
-            ref="contactInputRef"
-            v-model="form.contact"
-            type="text"
-            placeholder="Tu email o número de contacto"
-            class="form-input"
-          />
-          <input
-            v-model="form.website"
-            type="text"
-            class="honeypot"
-            autocomplete="off"
-            tabindex="-1"
-            aria-hidden="true"
-          />
-          <textarea
-            v-model="form.message"
-            placeholder="Tu mensaje..."
-            class="form-textarea"
-          ></textarea>
-          <button :disabled="isSending" @click="sendMessage">{{ isSending ? 'Enviando...' : 'Enviar' }}</button>
-          <p v-if="status.text" :class="['form-status', status.type]">{{ status.text }}</p>
-        </div>
-      </fieldset>
-
-      <fieldset class="contact-section">
-        <legend>Redes Sociales</legend>
-        <div class="social-links">
-          <a
-            href="https://github.com/GatuzoCXL"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="social-button"
-          >
-            <img :src="githubIcon" alt="GitHub" class="social-icon" /> GitHub
-          </a>
-          <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="social-button">
-            <img :src="linkedinIcon" alt="LinkedIn" class="social-icon" /> LinkedIn
-          </a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-button">
-            <img :src="messengerIcon" alt="Twitter" class="social-icon" /> Twitter
-          </a>
-          <a href="mailto:martinvar.76@gmail.com" class="social-button">
-            <img :src="mailIcon" alt="Email" class="social-icon" /> Email
-          </a>
-        </div>
-      </fieldset>
-
-      <fieldset class="contact-section">
-        <legend>Estado</legend>
-        <p class="status-message" ref="statusRef">
-          Disponible para proyectos y colaboraciones interesantes.
-        </p>
-      </fieldset>
-    </div>
-    </main>
-    </div>
+    </XpWindowFrame>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
-import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
 import { assetUrl } from '@/utils/assetUrl'
+import XpWindowFrame from '@/components/os/XpWindowFrame.vue'
 
 const windowsStore = useWindowsStore()
+
+const messengerIcon = assetUrl('icons/messenger.svg')
 const userAvatarIcon = assetUrl('icons/user-avatar.svg')
 const githubIcon = assetUrl('icons/brand-github.svg')
 const linkedinIcon = assetUrl('icons/brand-linkedin.svg')
-const messengerIcon = assetUrl('icons/messenger.svg')
-const mailIcon = assetUrl('icons/mail.svg')
+const documentsIcon = assetUrl('icons/documents.svg')
 
-const form = reactive({
-  name: '',
-  contact: '',
-  message: '',
-  website: '',
-})
+const profileSectionRef = ref(null)
+const contactSectionRef = ref(null)
+const availabilitySectionRef = ref(null)
 
-const EMAIL_TO = import.meta.env.VITE_EMAILJS_TO_EMAIL || 'martinvar.76@gmail.com'
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || ''
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || ''
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || ''
+const profile = {
+  displayName: 'Leonardo Vargas Martínez',
+  personalMessage: 'Disponible para conversar sobre productos, interfaces, automatización y desarrollo full stack.',
+  city: 'Perú · Tecsup',
+  email: 'martinvar.76@gmail.com',
+  phonePrimary: '919530281',
+  phoneSecondary: '963235280',
+  linkedinLabel: 'leonardo-vargas-81a118387',
+  githubLabel: 'GatuzoCXL',
+  availability: 'Abierto a oportunidades, colaboraciones y conversaciones profesionales.',
+}
 
-const status = ref({
-  type: '',
-  text: '',
-})
-
-const address = ref('MSN Messenger\\Contact')
-const previousAddress = ref('')
-const addressRef = ref(null)
-const formSectionRef = ref(null)
-const contactInputRef = ref(null)
-const statusRef = ref(null)
-const showSuggestions = ref(false)
-const selectedSuggestionIndex = ref(0)
-
-const addressSuggestions = [
-  'MSN Messenger\\Contact',
-  'MSN Messenger\\Contact\\Form',
-  'MSN Messenger\\Contact\\Contact Method',
-  'MSN Messenger\\Contact\\Status',
-  'MSN Messenger\\Contact\\GitHub',
-  'MSN Messenger\\Contact\\LinkedIn',
-  'MSN Messenger\\Contact\\My Documents',
+const timeline = [
+  {
+    label: 'Presentación',
+    value: 'Desarrollador Full Stack con foco en experiencia visual, backend e integración entre producto e infraestructura.',
+  },
+  {
+    label: 'Diferencial',
+    value: 'Combino desarrollo, criterio visual y base técnica en Linux, Windows, redes y despliegue para construir soluciones completas.',
+  },
+  {
+    label: 'Canales directos',
+    value: 'Correo, WhatsApp, LinkedIn y GitHub disponibles para revisar perfil, proyectos y contacto inmediato.',
+  },
 ]
-
-const filteredSuggestions = computed(() => buildAddressSuggestions(addressSuggestions, address.value, 8))
-
-const isSending = ref(false)
-const lastSentAt = ref(0)
-
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-const isValidPhone = (value) => /^(\+?[0-9]{1,3}[\s.-]?)?\(?[0-9]{2,4}\)?[\s.-]?[0-9]{3,4}[\s.-]?[0-9]{3,4}$/.test(value)
-const normalize = (value) => value.trim().replace(/\s+/g, ' ')
-const canonicalize = (value) => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-
-const blockedNameTokens = [
-  'hola',
-  'oye',
-  'bro',
-  'amigo',
-  'test',
-  'prueba',
-  'example',
-  'ejemplo',
-  'nombre',
-  'sexo',
-  'sex',
-  'puta',
-  'puto',
-  'mierda',
-  'nazi',
-  'idiota',
-  'admin',
-  'owner',
-]
-
-const blockedMessageTokens = [
-  'sexo',
-  'porn',
-  'xxx',
-  'casino',
-  'crypto',
-  'viagra',
-  'hack',
-  'bot',
-]
-
-const looksLikeRobloxFilter = (value, blockedTokens) => {
-  const normalized = canonicalize(value)
-  return blockedTokens.some((token) => normalized.includes(token))
-}
-
-const hasTooManyRepeats = (value) => /(.)\1{4,}/.test(value)
-
-const isLikelyProfessionalName = (value) => {
-  const cleaned = normalize(value)
-
-  // Solo letras, apóstrofe, guión y espacios.
-  if (!/^[A-Za-zÀ-ÿ'\-\s]+$/.test(cleaned)) {
-    return false
-  }
-
-  if (cleaned.length < 4 || cleaned.length > 60) {
-    return false
-  }
-
-  const words = cleaned.split(' ').filter(Boolean)
-
-  // Minimo nombre y apellido para contexto profesional.
-  if (words.length < 2) {
-    return false
-  }
-
-  if (words.some((word) => word.length < 2)) {
-    return false
-  }
-
-  return true
-}
-
-const hasBlockedContent = (value) => {
-  const riskyPatterns = [
-    /https?:\/\//i,
-    /<script/i,
-    /free money/i,
-    /crypto/i,
-    /casino/i,
-  ]
-  return riskyPatterns.some((pattern) => pattern.test(value))
-}
-
-const sendViaEmailJs = async () => {
-  const payload = {
-    service_id: SERVICE_ID,
-    template_id: TEMPLATE_ID,
-    user_id: PUBLIC_KEY,
-    template_params: {
-      name: form.name,
-      from_name: form.name,
-      reply_to: isValidEmail(form.contact) ? form.contact : EMAIL_TO,
-      contact: form.contact,
-      to_email: EMAIL_TO,
-      time: new Date().toLocaleString('es-PE', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }),
-      message: form.message,
-    },
-  }
-
-  const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    throw new Error('EmailJS error')
-  }
-}
-
-const openMailFallback = () => {
-  const subject = encodeURIComponent(`Nuevo mensaje de ${form.name}`)
-  const body = encodeURIComponent(
-    `Nombre: ${form.name}\nContacto: ${form.contact}\n\nMensaje:\n${form.message}`
-  )
-  window.location.href = `mailto:${EMAIL_TO}?subject=${subject}&body=${body}`
-}
-
-const sendMessage = () => {
-  if (isSending.value) {
-    return
-  }
-
-  const now = Date.now()
-  if (now - lastSentAt.value < 30_000) {
-    status.value = {
-      type: 'error',
-      text: 'Espera unos segundos antes de volver a enviar.',
-    }
-    return
-  }
-
-  if (form.website) {
-    status.value = {
-      type: 'error',
-      text: 'No se pudo validar el envío.',
-    }
-    return
-  }
-
-  form.name = normalize(form.name)
-  form.contact = normalize(form.contact)
-  form.message = form.message.trim()
-
-  if (!form.name || !form.contact || !form.message) {
-    status.value = {
-      type: 'error',
-      text: 'Completa todos los campos antes de enviar.',
-    }
-    return
-  }
-
-  if (!isValidEmail(form.contact) && !isValidPhone(form.contact)) {
-    status.value = {
-      type: 'error',
-      text: 'Ingresa un correo o número de contacto válido.',
-    }
-    return
-  }
-
-  if (
-    !isLikelyProfessionalName(form.name) ||
-    looksLikeRobloxFilter(form.name, blockedNameTokens) ||
-    hasTooManyRepeats(form.name)
-  ) {
-    status.value = {
-      type: 'error',
-      text: 'Ingresa un nombre y apellido reales para continuar.',
-    }
-    return
-  }
-
-  if (form.message.length < 12 || form.message.length > 1200) {
-    status.value = {
-      type: 'error',
-      text: 'Tu mensaje debe tener entre 12 y 1200 caracteres.',
-    }
-    return
-  }
-
-  if (hasBlockedContent(form.message)) {
-    status.value = {
-      type: 'error',
-      text: 'Detectamos contenido no permitido en el mensaje.',
-    }
-    return
-  }
-
-  if (looksLikeRobloxFilter(form.message, blockedMessageTokens) || hasTooManyRepeats(form.message)) {
-    status.value = {
-      type: 'error',
-      text: 'El mensaje contiene términos o patrones no permitidos.',
-    }
-    return
-  }
-
-  status.value = {
-    type: 'loading',
-    text: 'Enviando mensaje...',
-  }
-
-  isSending.value = true
-
-  Promise.resolve()
-    .then(async () => {
-      if (SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY) {
-        await sendViaEmailJs()
-      } else {
-        openMailFallback()
-      }
-    })
-    .then(() => {
-      lastSentAt.value = Date.now()
-      status.value = {
-        type: 'success',
-        text: 'Mensaje enviado correctamente. Responderé lo antes posible.',
-      }
-      form.name = ''
-      form.contact = ''
-      form.message = ''
-      form.website = ''
-    })
-    .catch(() => {
-      status.value = {
-        type: 'error',
-        text: 'No se pudo enviar ahora. Intenta de nuevo en unos minutos.',
-      }
-    })
-    .finally(() => {
-      isSending.value = false
-    })
-}
-
-const setAddress = (value) => {
-  previousAddress.value = address.value
-  address.value = value
-}
-
-const focusAddress = async () => {
-  await nextTick()
-  addressRef.value?.focus()
-  addressRef.value?.select?.()
-}
-
-const focusForm = () => {
-  setAddress('MSN Messenger\\Contact\\Form')
-  formSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
-const focusContactField = async () => {
-  setAddress('MSN Messenger\\Contact\\Contact Method')
-  await nextTick()
-  contactInputRef.value?.focus()
-}
-
-const showAvailability = () => {
-  setAddress('MSN Messenger\\Contact\\Status')
-  statusRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-}
 
 const openExternal = (target) => {
   if (target === 'github') {
-    setAddress('MSN Messenger\\Contact\\GitHub')
     window.open('https://github.com/GatuzoCXL', '_blank', 'noopener,noreferrer')
+    return
   }
 
   if (target === 'linkedin') {
-    setAddress('MSN Messenger\\Contact\\LinkedIn')
-    window.open('https://linkedin.com/', '_blank', 'noopener,noreferrer')
+    window.open('https://www.linkedin.com/in/leonardo-vargas-81a118387', '_blank', 'noopener,noreferrer')
   }
 }
+
+const openMail = () => {
+  window.location.href = `mailto:${profile.email}`
+}
+
+const openWhatsApp = (number) => {
+  window.open(`https://wa.me/51${number}`, '_blank', 'noopener,noreferrer')
+}
+
+const openLinkedIn = () => openExternal('linkedin')
+const openGitHub = () => openExternal('github')
 
 const openDocuments = () => {
-  setAddress('MSN Messenger\\Contact\\My Documents')
-  windowsStore.toggleWindow('documents')
+  windowsStore.openWindow('documents')
 }
 
-const runAddressAction = () => {
-  previousAddress.value = address.value
-  showSuggestions.value = false
-  const term = address.value.toLowerCase()
-
-  const quickWindow = resolveWindowShortcut(address.value)
-  if (quickWindow && !term.includes('form') && !term.includes('status')) {
-    windowsStore.openWindow(quickWindow)
-    return
-  }
-
-  if (term.includes('projects') || term.includes('internet explorer')) {
-    windowsStore.openWindow('internet-explorer')
-    return
-  }
-
-  if (term.includes('form')) {
-    focusForm()
-    return
-  }
-
-  if (term.includes('status') || term.includes('dispon')) {
-    showAvailability()
-    return
-  }
-
-  if (term.includes('github')) {
-    openExternal('github')
-    return
-  }
-
-  if (term.includes('linkedin')) {
-    openExternal('linkedin')
-    return
-  }
-
-  if (term.includes('document')) {
-    openDocuments()
-  }
+const openProjects = () => {
+  windowsStore.openWindow('internet-explorer')
 }
 
-const moveSuggestion = (delta) => {
-  if (!filteredSuggestions.value.length) return
-  selectedSuggestionIndex.value =
-    (selectedSuggestionIndex.value + delta + filteredSuggestions.value.length) %
-    filteredSuggestions.value.length
+const scrollToProfile = () => {
+  profileSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const completeWithHighlighted = () => {
-  if (!showSuggestions.value || !filteredSuggestions.value.length) return
-  const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-  if (picked) {
-    address.value = picked
-  }
+const scrollToContact = () => {
+  contactSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-const pickSuggestion = (item) => {
-  address.value = item
-  runAddressAction()
-}
-
-const handleEnter = () => {
-  if (showSuggestions.value && filteredSuggestions.value.length) {
-    const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-    if (picked) {
-      pickSuggestion(picked)
-      return
-    }
-  }
-
-  runAddressAction()
-}
-
-const hideSuggestionsSoon = () => {
-  window.setTimeout(() => {
-    showSuggestions.value = false
-  }, 100)
-}
-
-const goBack = () => {
-  if (!previousAddress.value) return
-  const current = address.value
-  address.value = previousAddress.value
-  previousAddress.value = current
+const scrollToAvailability = () => {
+  availabilitySectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 </script>
 
 <style scoped>
 .contact {
   height: 100%;
-  background: linear-gradient(180deg, #eff5fd 0%, #dce8f8 100%);
-}
-
-.contact-header {
-  background: linear-gradient(90deg, #1e4e95 0%, #2e74c7 45%, #cde1fb 100%);
-  color: white;
-  padding: 12px;
-  border-bottom: 1px solid #7fa3ce;
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.4);
-}
-
-.profile {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  background: linear-gradient(180deg, #edf4fd 0%, #d6e4f8 100%);
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
+.msn-shell {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 4px;
+  flex-direction: column;
+  min-height: 100%;
+  border: 1px solid #98b4d4;
+  background: linear-gradient(180deg, #fdfefe 0%, #edf4fb 100%);
 }
 
-.avatar img {
-  width: 32px;
-  height: 32px;
+.msn-topbar {
+  border-bottom: 1px solid #b8cce4;
+  background: linear-gradient(180deg, #fdfefe 0%, #eef4fb 100%);
+}
+
+.msn-menu-row {
+  display: flex;
+  gap: 18px;
+  padding: 5px 10px 4px;
+  font-size: 11px;
+  color: #273f67;
+}
+
+.msn-toolbar-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid #fff;
+  background: linear-gradient(180deg, #fbfdff 0%, #eaf2fc 100%);
+}
+
+.msn-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #8ea8c9;
+  background: linear-gradient(180deg, #ffffff 0%, #e8f0fb 100%);
+  font-size: 11px;
+  color: #214d86;
+}
+
+.msn-tool-btn img {
+  width: 16px;
+  height: 16px;
   object-fit: contain;
 }
 
-.profile-text {
+.msn-layout {
+  display: grid;
+  grid-template-columns: 1fr 154px;
+  gap: 10px;
+  padding: 10px;
+  min-height: 0;
+  flex: 1;
+}
+
+.msn-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.conversation-card,
+.profile-card,
+.status-card,
+.display-box {
+  border: 1px solid #9bb6d8;
+  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
+.conversation-card {
+  padding: 10px;
+}
+
+.conversation-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.conversation-avatar {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.conversation-head strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #123d75;
+  font-size: 13px;
+}
+
+.conversation-head p {
+  margin: 0;
+  color: #385781;
+  font-size: 11px;
+}
+
+.conversation-log {
+  border: 1px solid #97b2d4;
+  background: #fff;
+  min-height: 132px;
+  padding: 8px 10px;
+}
+
+.log-line {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 9px;
+  color: #1d3d69;
+}
+
+.log-line:last-child {
+  margin-bottom: 0;
+}
+
+.log-bullet {
+  color: #1f61b9;
+  line-height: 1.4;
+}
+
+.log-line p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.nudge-strip {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px solid #c9dbf1;
+  background: linear-gradient(180deg, #f8fbff 0%, #e8f0fb 100%);
+  color: #355784;
+  font-size: 11px;
+}
+
+.inline-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0 2px;
+  color: #0f4ba6;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.profile-card {
+  padding: 0;
+}
+
+.profile-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, #e7f0fb 0%, #d8e6f7 100%);
+  border-bottom: 1px solid #a8bfdc;
+  color: #173d73;
+  font-size: 11px;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+.contact-tile {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding: 8px;
+  border: 1px solid #9db7d8;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fc 100%);
+  text-align: left;
+  color: #123d75;
 }
 
-.profile-text strong {
-  font-size: 12px;
-}
-
-.profile-text p {
-  margin: 0;
+.contact-label {
   font-size: 10px;
-  opacity: 0.9;
+  text-transform: uppercase;
+  color: #4b6993;
 }
 
-.contact-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
-}
-
-.contact-section {
-  padding: 10px;
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #f9fcff 0%, #edf4fb 100%);
-}
-
-.contact-section legend {
-  padding: 2px 8px;
-  border: 1px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #ffffff 0%, #e9f2fb 100%);
+.contact-value {
   font-size: 11px;
   font-weight: 700;
 }
 
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
-  border: 1px solid #9bb6d8;
-  padding: 8px;
-  border-radius: 2px;
+.status-card {
+  padding: 10px;
 }
 
-.form-input,
-.form-textarea {
-  padding: 6px;
-  border: 1px solid #7f9db9;
-  background: linear-gradient(180deg, #ffffff 0%, #f5faff 100%);
-  font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
+.status-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.status-row strong {
+  color: #173d73;
+}
+
+.status-row p {
+  margin: 2px 0 0;
+  color: #355784;
   font-size: 11px;
 }
 
-.form-input::placeholder,
-.form-textarea::placeholder {
-  color: #6d7e97;
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #9dff95 0%, #45b63b 65%, #2b7d26 100%);
+  box-shadow: 0 0 0 1px rgba(32, 106, 30, 0.45);
+  flex-shrink: 0;
 }
 
-.form-input {
-  height: 20px;
+.status-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #21456f;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
-.form-textarea {
-  resize: vertical;
-  min-height: 60px;
-  font-size: 10px;
+.msn-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.contact-form button {
-  width: fit-content;
-  padding: 4px 12px;
-  border: 1px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #ffffff 0%, #dfeaf8 100%);
-  color: #123864;
-}
-
-.contact-form button:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.honeypot {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.form-status {
-  margin: 2px 0 0;
-  font-size: 10px;
-}
-
-.form-status.loading {
-  color: #274a7b;
-}
-
-.form-status.success {
-  color: #1f7a37;
-}
-
-.form-status.error {
-  color: #a52323;
-}
-
-.social-links {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-}
-
-.social-button {
-  padding: 6px 8px;
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #ffffff 0%, #e1ebf8 100%);
-  text-decoration: none;
-  color: #123864;
-  text-align: center;
+.display-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  min-height: 154px;
+  padding: 8px;
+  background: linear-gradient(180deg, #fbfdff 0%, #eaf2fb 100%);
 }
 
-.social-button:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
-}
-
-.social-button:active {
-  border-color: #8ea8c9 #ffffff #ffffff #8ea8c9;
-}
-
-.social-icon {
-  width: 14px;
-  height: 14px;
+.display-box img {
+  width: 100px;
+  height: 100px;
   object-fit: contain;
 }
 
-.status-message {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: #27466f;
-  font-style: italic;
+.display-box.secondary img {
+  width: 88px;
+  height: 88px;
+}
+
+@media (max-width: 900px) {
+  .msn-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .msn-side-panel {
+    flex-direction: row;
+  }
+
+  .display-box {
+    flex: 1;
+    min-height: 110px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -20,6 +20,7 @@ let globalDblClickHandler = null
 let globalKeydownHandler = null
 
 const onBootDone = () => {
+  windowsStore.balloonDismissed = false
   isBooting.value = false
 }
 

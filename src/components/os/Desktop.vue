@@ -32,13 +32,14 @@
         <button class="context-item" @click="clearSelection">Deseleccionar</button>
       </div>
     </Teleport>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
-import { assetUrl } from '@/utils/assetUrl'
+import { xpIcon } from '@/utils/xpIcons'
 
 const windowsStore = useWindowsStore()
 const clickedId = ref(null)
@@ -49,42 +50,42 @@ const desktopIcons = [
   {
     id: 'my-pc',
     label: 'Sobre mí',
-    icon: assetUrl('icons/my-pc.svg'),
+    icon: xpIcon('my-pc'),
   },
   {
     id: 'documents',
     label: 'Mis Documentos',
-    icon: assetUrl('icons/documents.svg'),
+    icon: xpIcon('documents'),
   },
   {
     id: 'internet-explorer',
     label: 'Foro de Proyectos',
-    icon: assetUrl('icons/internet-explorer.svg'),
+    icon: xpIcon('internet-explorer'),
   },
   {
     id: 'messenger',
     label: 'MSN Messenger',
-    icon: assetUrl('icons/messenger.svg'),
+    icon: xpIcon('messenger'),
   },
   {
     id: 'games-folder',
     label: 'Juegos',
-    icon: assetUrl('icons/games-folder.svg'),
+    icon: xpIcon('games-folder'),
   },
   {
     id: 'music-player',
     label: 'Music Studio',
-    icon: assetUrl('icons/media-audio.svg'),
+    icon: xpIcon('media-audio'),
   },
   {
     id: 'wallpaper',
     label: 'Wallpaper',
-    icon: assetUrl('icons/control-panel.svg'),
+    icon: xpIcon('control-panel'),
   },
   {
     id: 'recycle-bin',
     label: 'Papelera de reciclaje',
-    icon: assetUrl('icons/recycle-bin.svg'),
+    icon: xpIcon('recycle-bin'),
   },
 ]
 

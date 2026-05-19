@@ -86,6 +86,9 @@ function launchIframe() {
   grid-template-columns: 220px 1fr;
   gap: 10px;
   height: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .games-list {

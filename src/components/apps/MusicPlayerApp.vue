@@ -1,126 +1,99 @@
 <template>
-  <div class="music-app xp-window-frame">
-    <div class="xp-explorer-chrome">
-      <div class="xp-menu-row">
-        <span class="xp-menu-item">File</span>
-        <span class="xp-menu-item">Edit</span>
-        <span class="xp-menu-item">View</span>
-        <span class="xp-menu-item">Favorites</span>
-        <span class="xp-menu-item">Tools</span>
-        <span class="xp-menu-item">Help</span>
-      </div>
-      <div class="xp-toolbar-row">
-        <button class="xp-tool-btn back" @click="goBack">Back</button>
-        <button class="xp-tool-btn search" @click="focusAddress">Search</button>
-        <button class="xp-tool-btn folders">Folders</button>
-      </div>
-      <div class="xp-address-row">
-        <span class="xp-address-label">Address</span>
-        <div class="xp-suggest-wrapper">
-          <input
-            ref="addressRef"
-            v-model="address"
-            class="xp-address-input"
-            type="text"
-            @focus="showSuggestions = true"
-            @blur="hideSuggestionsSoon"
-            @keydown.down.prevent="moveSuggestion(1)"
-            @keydown.up.prevent="moveSuggestion(-1)"
-            @keydown.enter.prevent="handleEnter"
-            @keydown.tab.prevent="completeWithHighlighted"
-            @keydown.esc.prevent="showSuggestions = false"
-          />
-          <div v-if="showSuggestions && filteredSuggestions.length" class="xp-suggestions">
-            <div
-              v-for="(item, idx) in filteredSuggestions"
-              :key="item"
-              class="xp-suggestion-item"
-              :class="{ active: idx === selectedSuggestionIndex }"
-              @mouseenter="selectedSuggestionIndex = idx"
-              @mousedown.prevent="pickSuggestion(item)"
-            >
-              {{ item }}
+  <div class="music-app">
+    <ExplorerChrome
+      v-model:address="address"
+      :suggestions="filteredSuggestions"
+      :show-navigation-buttons="true"
+      :can-go-back="!!previousAddress"
+      :can-go-forward="false"
+      @back="goBack"
+      @forward="goForward"
+      @go="runAddressAction"
+      @pick-suggestion="pickSuggestion"
+    >
+      <template #sidebar>
+        <section class="xp-task-group">
+          <div class="xp-task-title">Player Tasks</div>
+          <ul>
+            <li><button class="xp-task-link" @click="focusControls">Controlar reproducción</button></li>
+            <li><button class="xp-task-link" @click="toggleWidget">Mostrar/ocultar widget</button></li>
+            <li><button class="xp-task-link" @click="focusPersonalization">Configurar skin y ecualizador</button></li>
+          </ul>
+        </section>
+
+        <section class="xp-task-group">
+          <div class="xp-task-title">Now Playing</div>
+          <div class="xp-item-list">
+            <div class="xp-item-row">
+              <span class="xp-item-icon">♪</span>
+              <span class="xp-item-label">{{ musicStore.nowPlayingTitle || 'Sin reproducción' }}</span>
+            </div>
+            <div class="xp-item-row">
+              <span class="xp-item-icon">{{ musicStore.isPlaying ? '▶' : '⏸' }}</span>
+              <span class="xp-item-label">{{ musicStore.isPlaying ? 'Reproduciendo' : 'Pausado' }}</span>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <div class="music-main">
+        <div class="xp-content-area">
+          <div class="xp-section" ref="controlsRef">
+            <div class="xp-section-header">Reproducción</div>
+            <div class="xp-control-strip">
+              <button @click="send('prev')">⏮ Anterior</button>
+              <button @click="send('toggle-play')">{{ musicStore.isPlaying ? '⏸ Pausar' : '▶ Reproducir' }}</button>
+              <button @click="send('stop')">⏹ Detener</button>
+              <button @click="send('next')">⏭ Siguiente</button>
+              <span class="xp-sep"></span>
+              <button class="widget-visibility-btn" @click="musicStore.widgetVisible = !musicStore.widgetVisible">
+                {{ musicStore.widgetVisible ? 'Ocultar widget' : 'Mostrar widget' }}
+              </button>
+              <span class="xp-sep"></span>
+              <span class="xp-status-text">
+                Volumen: {{ musicStore.volume }} — {{ musicStore.nowPlayingTitle || 'Sin reproducción' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="xp-section" ref="personalizationRef">
+            <div class="xp-section-header">Configuración</div>
+            <div class="xp-setting-row">
+              <label>Skin</label>
+              <select v-model="musicStore.skin">
+                <option v-for="skin in musicStore.availableSkins" :key="skin.id" :value="skin.id">
+                  {{ skin.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="xp-setting-row">
+              <label>Barras ecualizador: {{ musicStore.eqBars }}</label>
+              <input type="range" min="10" max="40" v-model.number="musicStore.eqBars" />
+            </div>
+
+            <div class="xp-setting-row">
+              <label>Brillo ecualizador: {{ musicStore.eqGlow.toFixed(2) }}</label>
+              <input type="range" min="0.2" max="1" step="0.05" v-model.number="musicStore.eqGlow" />
+            </div>
+
+            <div class="xp-setting-row">
+              <label>Volumen global: {{ musicStore.volume }}</label>
+              <input type="range" min="0" max="100" v-model.number="musicStore.volume" />
+            </div>
+          </div>
+
+          <div class="xp-section">
+            <div class="xp-section-header">Estado</div>
+            <div class="xp-status-line">
+              <span><strong>Reproduciendo:</strong> {{ musicStore.nowPlayingTitle }}</span>
+              <span><strong>Canal:</strong> {{ musicStore.nowPlayingChannel || 'N/A' }}</span>
+              <span><strong>Estado:</strong> {{ musicStore.isPlaying ? 'Reproduciendo' : 'Pausado/Detenido' }}</span>
             </div>
           </div>
         </div>
-        <button class="xp-tool-btn go-btn" @click="runAddressAction">Go</button>
-        <button class="xp-tool-btn xp-address-jump" @click="jumpToDocuments">Docs</button>
       </div>
-    </div>
-
-    <div class="xp-page-shell">
-    <aside class="xp-sidebar-panel">
-      <section class="xp-task-group">
-        <div class="xp-task-title">Player Tasks</div>
-        <ul>
-          <li><button class="xp-task-link" @click="focusControls">Controlar reproducción</button></li>
-          <li><button class="xp-task-link" @click="toggleWidget">Mostrar/ocultar widget</button></li>
-          <li><button class="xp-task-link" @click="focusPersonalization">Configurar skin y ecualizador</button></li>
-        </ul>
-      </section>
-
-      <section class="xp-task-group">
-        <div class="xp-task-title">Now Playing</div>
-        <ul>
-          <li>{{ musicStore.nowPlayingTitle }}</li>
-        </ul>
-      </section>
-    </aside>
-
-    <main class="xp-main-panel music-main">
-    <fieldset class="group" ref="controlsRef">
-      <legend>Controles del reproductor</legend>
-
-      <div class="controls-row">
-        <button @click="send('prev')">⏮ Anterior</button>
-        <button @click="send('toggle-play')">{{ musicStore.isPlaying ? '⏸ Pausar' : '▶ Reproducir' }}</button>
-        <button @click="send('stop')">⏹ Detener</button>
-        <button @click="send('next')">⏭ Siguiente</button>
-      </div>
-
-      <div class="widget-toggle">
-        <button class="widget-visibility-btn" @click="musicStore.widgetVisible = !musicStore.widgetVisible">
-          {{ musicStore.widgetVisible ? 'Ocultar widget del escritorio' : 'Mostrar widget en escritorio' }}
-        </button>
-      </div>
-    </fieldset>
-
-    <fieldset class="group" ref="personalizationRef">
-      <legend>Personalización</legend>
-
-      <div class="setting">
-        <label>Skin</label>
-        <select v-model="musicStore.skin">
-          <option v-for="skin in musicStore.availableSkins" :key="skin.id" :value="skin.id">
-            {{ skin.label }}
-          </option>
-        </select>
-      </div>
-
-      <div class="setting">
-        <label>Barras ecualizador: {{ musicStore.eqBars }}</label>
-        <input type="range" min="10" max="40" v-model.number="musicStore.eqBars" />
-      </div>
-
-      <div class="setting">
-        <label>Brillo ecualizador: {{ musicStore.eqGlow.toFixed(2) }}</label>
-        <input type="range" min="0.2" max="1" step="0.05" v-model.number="musicStore.eqGlow" />
-      </div>
-
-      <div class="setting">
-        <label>Volumen global: {{ musicStore.volume }}</label>
-        <input type="range" min="0" max="100" v-model.number="musicStore.volume" />
-      </div>
-    </fieldset>
-
-    <fieldset class="group status">
-      <legend>Estado en vivo</legend>
-      <p><strong>Reproduciendo:</strong> {{ musicStore.nowPlayingTitle }}</p>
-      <p><strong>Canal:</strong> {{ musicStore.nowPlayingChannel || 'N/A' }}</p>
-      <p><strong>Estado:</strong> {{ musicStore.isPlaying ? 'Reproduciendo' : 'Pausado/Detenido' }}</p>
-    </fieldset>
-    </main>
-    </div>
+    </ExplorerChrome>
   </div>
 </template>
 
@@ -129,16 +102,14 @@ import { computed, nextTick, ref } from 'vue'
 import { useMusicStore } from '@/stores/music'
 import { useWindowsStore } from '@/stores/windows'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
+import ExplorerChrome from '@/components/os/ExplorerChrome.vue'
 
 const musicStore = useMusicStore()
 const windowsStore = useWindowsStore()
 const address = ref('Music Studio\\Player')
 const previousAddress = ref('')
-const addressRef = ref(null)
 const controlsRef = ref(null)
 const personalizationRef = ref(null)
-const showSuggestions = ref(false)
-const selectedSuggestionIndex = ref(0)
 
 const addressSuggestions = [
   'Music Studio\\Player',
@@ -186,7 +157,6 @@ const toggleWidget = () => {
 
 const runAddressAction = () => {
   previousAddress.value = address.value
-  showSuggestions.value = false
   const term = address.value.toLowerCase()
 
   const quickWindow = resolveWindowShortcut(address.value)
@@ -210,42 +180,8 @@ const runAddressAction = () => {
   }
 }
 
-const moveSuggestion = (delta) => {
-  if (!filteredSuggestions.value.length) return
-  selectedSuggestionIndex.value =
-    (selectedSuggestionIndex.value + delta + filteredSuggestions.value.length) %
-    filteredSuggestions.value.length
-}
-
-const completeWithHighlighted = () => {
-  if (!showSuggestions.value || !filteredSuggestions.value.length) return
-  const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-  if (picked) {
-    address.value = picked
-  }
-}
-
-const pickSuggestion = (item) => {
-  address.value = item
+const pickSuggestion = () => {
   runAddressAction()
-}
-
-const handleEnter = () => {
-  if (showSuggestions.value && filteredSuggestions.value.length) {
-    const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-    if (picked) {
-      pickSuggestion(picked)
-      return
-    }
-  }
-
-  runAddressAction()
-}
-
-const hideSuggestionsSoon = () => {
-  window.setTimeout(() => {
-    showSuggestions.value = false
-  }, 100)
 }
 
 const goBack = () => {
@@ -255,6 +191,8 @@ const goBack = () => {
   previousAddress.value = current
 }
 
+const goForward = () => {}
+
 const jumpToDocuments = () => {
   windowsStore.openWindow('documents')
 }
@@ -263,39 +201,52 @@ const jumpToDocuments = () => {
 <style scoped>
 .music-app {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .music-main {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
+  padding: 0;
 }
 
-.group {
-  padding: 8px;
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #eef5ff;
+.xp-content-area {
+  display: flex;
+  flex-direction: column;
 }
 
-.group legend {
-  padding: 2px 8px;
-  border: 1px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #ece9d8;
+.xp-section {
+  margin-bottom: 8px;
+}
+
+.xp-section:last-child {
+  margin-bottom: 0;
+}
+
+.xp-section-header {
   font-size: 11px;
   font-weight: 700;
+  padding: 2px 0 3px;
+  border-bottom: 1px solid #7f9db9;
+  margin-bottom: 4px;
 }
 
-.controls-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+.xp-control-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
 }
 
-.controls-row button,
+.xp-control-strip button,
 .widget-visibility-btn {
-  padding: 6px 8px;
+  padding: 4px 8px;
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
   background: #dfeaf8;
@@ -303,58 +254,101 @@ const jumpToDocuments = () => {
   text-align: center;
 }
 
-.controls-row button:hover,
+.xp-control-strip button:hover,
 .widget-visibility-btn:hover {
   background: #ecf4ff;
 }
 
-.controls-row button:active,
+.xp-control-strip button:active,
 .widget-visibility-btn:active {
   border-color: #808080 #ffffff #ffffff #808080;
 }
 
-.widget-toggle {
-  margin-top: 8px;
+.xp-sep {
+  width: 1px;
+  height: 16px;
+  background: #7f9db9;
+  margin: 0 4px;
+}
+
+.xp-status-text {
   font-size: 11px;
+  color: #12355f;
 }
 
-.widget-visibility-btn {
-  width: 100%;
+.xp-setting-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+  margin-bottom: 4px;
 }
 
-.setting {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 8px;
+.xp-setting-row:last-child {
+  margin-bottom: 0;
 }
 
-.setting select,
-.setting input[type='range'] {
+.xp-setting-row label {
+  font-size: 11px;
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.xp-setting-row select,
+.xp-setting-row input[type='range'] {
   border: 1px solid #7f9db9;
   background: #fff;
+  flex: 1;
 }
 
-.setting select {
+.xp-setting-row select {
   min-height: 22px;
   color: #12355f;
   padding: 2px 6px;
 }
 
-.setting select:focus,
-.setting select:active {
+.xp-setting-row select:focus,
+.xp-setting-row select:active {
   color: #12355f;
   background: #fff;
   outline: 1px solid #2a68bf;
   outline-offset: 0;
 }
 
-.setting select option {
+.xp-setting-row select option {
   color: #12355f;
   background: #fff;
 }
 
-.status p {
-  margin: 4px 0;
+.xp-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   font-size: 11px;
+  padding-top: 4px;
+}
+
+.xp-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.xp-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.xp-item-icon {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.xp-item-label {
+  color: #12355f;
 }
 </style>

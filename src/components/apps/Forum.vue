@@ -1,9 +1,18 @@
 <template>
   <div class="forum-container">
+    <IEBar
+      v-model:address="ieAddress"
+      :can-go-back="false"
+      :can-go-forward="false"
+      @go="onIeGo"
+      @home="goToForum"
+      @refresh="startLoadingSequence"
+      @menu-click="onIeMenuClick"
+    />
     <div class="forum-page">
       <div class="loading-strip" :class="{ hidden: isReady }">
         <div class="loading-strip__row">
-          <span class="loading-strip__label">Cargando archivo.portafolio.local...</span>
+          <span class="loading-strip__label">Cargando x7r9p2portfolio.onion...</span>
           <span class="loading-strip__status">{{ loadingStatus }}</span>
         </div>
         <div class="loading-strip__bar">
@@ -96,7 +105,7 @@
           <div class="forum-header">
             <img :src="logoUrl" alt="Forum" class="forum-logo" />
             <div>
-              <div class="forum-title">archivo.portafolio.local</div>
+              <div class="forum-title">x7r9p2portfolio.onion</div>
               <div class="forum-subtitle">Proyectos varios documentados — 2001-2025</div>
             </div>
           </div>
@@ -730,6 +739,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { usePortfolioContent } from '@/composables/usePortfolioContent'
 import { assetUrl } from '@/utils/assetUrl'
+import IEBar from '@/components/os/IEBar.vue'
 
 const { projects, loadContent } = usePortfolioContent()
 
@@ -1215,6 +1225,25 @@ const progress = ref(0)
 const loadingStatus = ref('Inicializando portal...')
 const currentTime = ref('')
 const usersOnline = ref(['Gasut', 'Visitante'])
+const ieAddress = ref('http://x7r9p2portfolio.onion/')
+
+const onIeGo = () => {
+  const addr = ieAddress.value.toLowerCase()
+  if (addr.includes('search')) {
+    goToSearch()
+  } else if (addr.includes('profile')) {
+    goToProfile()
+  } else if (addr.includes('admin')) {
+    goToAdmin()
+  } else {
+    goToForum()
+  }
+}
+
+const onIeMenuClick = () => {
+  // Placeholder: no menu actions implemented
+}
+
 const isReady = computed(() => loadStage.value >= 5)
 
 const updateTime = () => {
@@ -1290,6 +1319,11 @@ onUnmounted(() => {
 .forum-container {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow: auto;
   background:
     radial-gradient(circle at top, rgba(137, 23, 23, 0.28), transparent 44%),

@@ -1,92 +1,53 @@
 <template>
   <div class="documents-app xp-window-frame">
-    <div class="xp-explorer-chrome">
-      <div class="xp-menu-row">
-        <span class="xp-menu-item">File</span>
-        <span class="xp-menu-item">Edit</span>
-        <span class="xp-menu-item">View</span>
-        <span class="xp-menu-item">Favorites</span>
-        <span class="xp-menu-item">Tools</span>
-        <span class="xp-menu-item">Help</span>
-      </div>
-      <div class="xp-toolbar-row">
-        <button class="xp-tool-btn back" @click="goBack">Back</button>
-        <button class="xp-tool-btn search" @click="focusAddress">Search</button>
-        <button class="xp-tool-btn folders">Folders</button>
-      </div>
-      <div class="xp-address-row">
-        <span class="xp-address-label">Address</span>
-        <div class="xp-suggest-wrapper">
-          <input
-            ref="addressRef"
-            v-model="address"
-            class="xp-address-input"
-            type="text"
-            @focus="showSuggestions = true"
-            @blur="hideSuggestionsSoon"
-            @keydown.down.prevent="moveSuggestion(1)"
-            @keydown.up.prevent="moveSuggestion(-1)"
-            @keydown.enter.prevent="handleEnter"
-            @keydown.tab.prevent="completeWithHighlighted"
-            @keydown.esc.prevent="showSuggestions = false"
-          />
-          <div v-if="showSuggestions && filteredSuggestions.length" class="xp-suggestions">
-            <div
-              v-for="(item, idx) in filteredSuggestions"
-              :key="item"
-              class="xp-suggestion-item"
-              :class="{ active: idx === selectedSuggestionIndex }"
-              @mouseenter="selectedSuggestionIndex = idx"
-              @mousedown.prevent="pickSuggestion(item)"
-            >
-              {{ item }}
-            </div>
-          </div>
-        </div>
-        <button class="xp-tool-btn go-btn" @click="runSearch">Go</button>
+    <ExplorerChrome
+      :address="address"
+      :suggestions="addressSuggestions"
+      :can-go-back="Boolean(previousAddress)"
+      @update:address="address = $event"
+      @back="goBack"
+      @go="runSearch"
+      @pick-suggestion="runSearch"
+    >
+      <template #toolbar-extras>
         <button class="xp-tool-btn xp-address-jump" @click="jumpToProjects">Proy</button>
-      </div>
-    </div>
-
-    <div class="xp-page-shell">
-    <aside class="xp-sidebar-panel">
-      <section class="xp-task-group">
-        <header class="xp-task-title">File and Folder Tasks</header>
-        <ul>
-          <li><button class="xp-task-link" @click="openCv">Abrir CV</button></li>
-          <li><button class="xp-task-link" @click="focusCertificates">Ver certificados</button></li>
-          <li><button class="xp-task-link" @click="clearSearch">Actualizar documentos</button></li>
-        </ul>
-      </section>
-
-      <section class="xp-task-group">
-        <header class="xp-task-title">Ubicaciones</header>
-        <ul>
-          <li><button class="xp-task-link" @click="openCv">Mi CV</button></li>
-          <li><button class="xp-task-link" @click="focusCertificates">Mis Certificados</button></li>
-          <li><button class="xp-task-link" @click="jumpToProjects">Proyectos</button></li>
-        </ul>
-      </section>
+      </template>
+      <template #sidebar>
+        <section class="xp-task-group">
+          <header class="xp-task-title">File and Folder Tasks</header>
+          <ul>
+            <li><button class="xp-task-link" @click="openCv">Abrir CV</button></li>
+            <li><button class="xp-task-link" @click="focusCertificates">Ver certificados</button></li>
+            <li><button class="xp-task-link" @click="clearSearch">Actualizar documentos</button></li>
+          </ul>
+        </section>
 
         <section class="xp-task-group">
-        <header class="xp-task-title">Detalles</header>
-        <ul>
-          <template v-if="selectedCertificate">
-            <li>Formato: {{ selectedCertificateTypeLabel }}</li>
-            <li>Origen: Supabase</li>
-          </template>
-          <template v-else-if="documents.cv">
-            <li>CV: {{ documents.cv.title || 'CV' }}</li>
-            <li>Formato: {{ cvTypeLabel }}</li>
-          </template>
-          <template v-else>
-            <li>Selecciona un certificado para ver sus detalles.</li>
-          </template>
-        </ul>
-      </section>
-    </aside>
+          <header class="xp-task-title">Ubicaciones</header>
+          <ul>
+            <li><button class="xp-task-link" @click="openCv">Mi CV</button></li>
+            <li><button class="xp-task-link" @click="focusCertificates">Mis Certificados</button></li>
+            <li><button class="xp-task-link" @click="jumpToProjects">Proyectos</button></li>
+          </ul>
+        </section>
 
-    <main class="xp-main-panel">
+        <section class="xp-task-group">
+          <header class="xp-task-title">Detalles</header>
+          <ul>
+            <template v-if="selectedCertificate">
+              <li>Formato: {{ selectedCertificateTypeLabel }}</li>
+              <li>Origen: Supabase</li>
+            </template>
+            <template v-else-if="documents.cv">
+              <li>CV: {{ documents.cv.title || 'CV' }}</li>
+              <li>Formato: {{ cvTypeLabel }}</li>
+            </template>
+            <template v-else>
+              <li>Selecciona un certificado para ver sus detalles.</li>
+            </template>
+          </ul>
+        </section>
+      </template>
       <fieldset class="doc-section">
         <legend>Curriculum Vitae</legend>
 
@@ -289,8 +250,7 @@
       <p v-if="actionFeedback.text" class="feedback-message" :class="actionFeedback.type">
         {{ actionFeedback.text }}
       </p>
-    </main>
-    </div>
+    </ExplorerChrome>
 
     <Teleport to="body">
       <div
@@ -356,11 +316,12 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import DocumentPdfPreview from '@/components/apps/DocumentPdfPreview.vue'
+import ExplorerChrome from '@/components/os/ExplorerChrome.vue'
 import { usePortfolioContent } from '@/composables/usePortfolioContent'
 import { useWindowsStore } from '@/stores/windows'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
 import { assetUrl, downloadUrl, isImageUrl, isPdfUrl, extractRawSupabaseUrl, isSupabaseStorageUrl, pdfProxyUrl } from '@/utils/assetUrl'
-import DocumentPdfPreview from '@/components/apps/DocumentPdfPreview.vue'
 
 const windowsStore = useWindowsStore()
 const { documents, loadContent } = usePortfolioContent()
@@ -369,9 +330,6 @@ const previousAddress = ref('')
 const searchQuery = ref('')
 const certsRef = ref(null)
 const cvPreviewRef = ref(null)
-const addressRef = ref(null)
-const showSuggestions = ref(false)
-const selectedSuggestionIndex = ref(0)
 const showingCvPreview = ref(true)
 const selectedCertificateKey = ref('')
 const certificateFallbackThumbnail = assetUrl('icons/documents.svg')
@@ -403,8 +361,6 @@ const addressSuggestions = computed(() => {
 
   return buildAddressSuggestions(all, address.value, 8)
 })
-
-const filteredSuggestions = computed(() => addressSuggestions.value)
 
 const filteredCertificates = computed(() => {
   const certs = documents.value.certificates || []
@@ -611,51 +567,6 @@ const clearSearch = () => {
   address.value = 'My Computer\\My Documents'
 }
 
-const focusAddress = async () => {
-  await nextTick()
-  addressRef.value?.focus()
-  addressRef.value?.select?.()
-}
-
-const moveSuggestion = (delta) => {
-  if (!filteredSuggestions.value.length) return
-  selectedSuggestionIndex.value =
-    (selectedSuggestionIndex.value + delta + filteredSuggestions.value.length) %
-    filteredSuggestions.value.length
-}
-
-const completeWithHighlighted = () => {
-  if (!showSuggestions.value || !filteredSuggestions.value.length) return
-  const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-  if (picked) {
-    address.value = picked
-  }
-}
-
-const pickSuggestion = (item) => {
-  address.value = item
-  showSuggestions.value = false
-  runSearch()
-}
-
-const handleEnter = () => {
-  if (showSuggestions.value && filteredSuggestions.value.length) {
-    const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-    if (picked) {
-      pickSuggestion(picked)
-      return
-    }
-  }
-
-  runSearch()
-}
-
-const hideSuggestionsSoon = () => {
-  window.setTimeout(() => {
-    showSuggestions.value = false
-  }, 100)
-}
-
 const openCv = () => {
   showCvPreview()
 }
@@ -777,16 +688,16 @@ watch(selectedCertificatePreviewUrl, async () => {
 
 .doc-section {
   padding: 8px;
-  border: 2px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #eef5ff;
+  border: 1px solid #9bb6d8;
+  background: linear-gradient(180deg, #fdfefe 0%, #edf4fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
 }
 
 .doc-section legend {
   padding: 2px 8px;
-  border: 1px solid;
-  border-color: #ffffff #7f9db9 #7f9db9 #ffffff;
-  background: #ece9d8;
+  border: 1px solid #8da7cc;
+  background: linear-gradient(180deg, #fffdf6 0%, #ece9d8 100%);
+  color: #1f3f76;
   font-size: 11px;
   font-weight: 700;
 }
@@ -846,16 +757,21 @@ watch(selectedCertificatePreviewUrl, async () => {
 }
 
 .doc-link-btn {
-  border: 1px solid #7f9db9;
-  background: linear-gradient(180deg, #f5fbff, #dcecff);
+  border: 1px solid #8ea8c9;
+  background: linear-gradient(180deg, #ffffff 0%, #e4eef8 100%);
+  color: #14355f;
   font: inherit;
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 3px 7px;
   cursor: pointer;
 }
 
+.doc-link-btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+}
+
 .doc-link-btn:active {
-  border-color: #4f6f96;
+  border-color: #8ea8c9 #ffffff #ffffff #8ea8c9;
 }
 
 .format-badge {
@@ -891,8 +807,9 @@ watch(selectedCertificatePreviewUrl, async () => {
 }
 
 .doc-preview-shell {
-  border: 1px solid #7f9db9;
+  border: 1px solid #9bb6d8;
   background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
   padding: 4px;
   display: flex;
   justify-content: center;
@@ -958,7 +875,8 @@ watch(selectedCertificatePreviewUrl, async () => {
 
 .cert-card {
   border: 1px solid #a1b5d2;
-  background: #f6faff;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.68);
   padding: 8px;
   display: grid;
   gap: 5px;
@@ -967,11 +885,11 @@ watch(selectedCertificatePreviewUrl, async () => {
 .cert-card:hover,
 .cert-card--selected {
   border-color: #7f9db9;
-  background: #eaf2fc;
+  background: linear-gradient(180deg, #fafdff 0%, #e5eef9 100%);
 }
 
 .cert-card--selected {
-  outline: 2px solid #2a68bf;
+  outline: 1px solid #2a68bf;
   outline-offset: 1px;
 }
 
@@ -1137,27 +1055,58 @@ watch(selectedCertificatePreviewUrl, async () => {
   align-items: center;
   justify-content: center;
   width: 22px;
+  min-width: 22px;
+  max-width: 22px;
   height: 20px;
+  min-height: 20px;
+  max-height: 20px;
+  padding: 0;
   border-radius: 2px;
-  border: 2px solid;
-  border-color: #fff #7f9db9 #7f9db9 #fff;
+  border: 1px solid #fff;
+  box-sizing: border-box;
   cursor: pointer;
-  background: linear-gradient(180deg, #6ea6ff 0%, #2e6bdd 45%, #1d49b5 100%);
-  color: #fff;
+  background-image: radial-gradient(
+    circle at 90% 90%,
+    #cc4600 0%,
+    #dc6527 55%,
+    #cd7546 70%,
+    #ffccb2 90%,
+    white 100%
+  );
+  box-shadow: inset 0 -1px 2px 1px #da4600;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.viewer-titlebar-controls .close-btn::before,
+.viewer-titlebar-controls .close-btn::after {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 2px;
+  width: 2px;
+  height: 14px;
+  background: #fff;
 }
 
 .viewer-titlebar-controls .close-btn::before {
-  display: none;
+  transform: rotate(45deg);
+}
+
+.viewer-titlebar-controls .close-btn::after {
+  transform: rotate(-45deg);
 }
 
 .viewer-titlebar-controls .close-btn {
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 400;
-  color: #fff;
-  flex-shrink: 0;
   width: 22px;
+  min-width: 22px;
+  max-width: 22px;
   height: 20px;
+  min-height: 20px;
+  max-height: 20px;
 }
 
 .viewer-titlebar-controls .title-btn:disabled {
@@ -1169,13 +1118,6 @@ watch(selectedCertificatePreviewUrl, async () => {
   box-shadow: inset -2px -2px 0 rgba(255, 255, 255, 0.25), inset 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
-.viewer-titlebar-controls .title-btn::before {
-  content: '';
-  width: 8px;
-  height: 2px;
-  background: #fff;
-  border-radius: 1px;
-}
 
 .viewer-body {
   overflow: auto;

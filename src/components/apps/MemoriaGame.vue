@@ -120,6 +120,9 @@ function resetGame() {
   padding: 16px;
   background: #e8e8f0;
   box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .game-header {

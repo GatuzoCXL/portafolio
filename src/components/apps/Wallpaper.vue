@@ -108,22 +108,22 @@ const shuffleWallpaper = () => {
 <style scoped>
 .wallpaper-app {
   height: 100%;
-  background: linear-gradient(180deg, #eef5fd 0%, #dbe7f8 100%);
+  background: linear-gradient(180deg, #f6f9fe 0%, #e2ecf8 100%);
 }
 
 .wallpaper-layout {
   display: grid;
   grid-template-columns: 220px 1fr;
-  gap: 10px;
+  gap: 8px;
   height: calc(100% - 57px);
-  padding: 8px;
+  padding: 2px;
 }
 
 .wallpaper-sidebar {
   padding: 10px;
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #f9fcff 0%, #e6eef8 100%);
+  border: 1px solid #9bb6d8;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
 }
 
 .wallpaper-title {
@@ -147,11 +147,10 @@ const shuffleWallpaper = () => {
   position: relative;
   overflow: hidden;
   margin: 0 0 10px;
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  border: 1px solid #9bb6d8;
   background: #fff;
   min-height: 180px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
 }
 
 .wallpaper-hero__image {
@@ -203,8 +202,7 @@ const shuffleWallpaper = () => {
 
 .wallpaper-action {
   flex: 1;
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  border: 1px solid #8ea8c9;
   background: linear-gradient(180deg, #ffffff 0%, #e4eef8 100%);
   color: #123864;
   padding: 5px 8px;
@@ -214,6 +212,7 @@ const shuffleWallpaper = () => {
 
 .wallpaper-action:hover {
   background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+  border-color: #7f9db9;
 }
 
 .wallpaper-action:active {
@@ -229,9 +228,9 @@ const shuffleWallpaper = () => {
 }
 
 .wallpaper-card {
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
-  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+  border: 1px solid #9bb6d8;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.68);
   padding: 8px;
   text-align: left;
   cursor: pointer;
@@ -241,8 +240,8 @@ const shuffleWallpaper = () => {
 }
 
 .wallpaper-card.active {
-  border-color: #ffffff #4f79a8 #4f79a8 #ffffff;
-  box-shadow: 0 0 0 1px rgba(24, 79, 150, 0.15) inset;
+  border-color: #7f9db9;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 1px rgba(42, 104, 191, 0.18);
 }
 
 .wallpaper-preview {

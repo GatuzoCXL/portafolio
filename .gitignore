@@ -33,7 +33,7 @@ README.md
 #elpepe
 backend/
 admin-repo/
-
+openspec/
 .gga
 skills-lock.json
 
@@ -53,3 +53,6 @@ skills-lock.json
 render-cli/
 render_cli.zip
 smoke-download.json
+.atl/
+.pi
+.pi-lens

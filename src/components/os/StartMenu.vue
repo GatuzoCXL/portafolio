@@ -73,15 +73,15 @@ import { ref } from 'vue'
 import { useWindowsStore } from '@/stores/windows'
 import { useSystemDialogStore } from '@/stores/systemDialog'
 import { useRunLauncherStore } from '@/stores/runLauncher'
-import { assetUrl } from '@/utils/assetUrl'
+import { xpIcon } from '@/utils/xpIcons'
 
 const windowsStore = useWindowsStore()
 const dialog = useSystemDialogStore()
 const runLauncher = useRunLauncherStore()
-const documentsIcon = assetUrl('icons/documents.svg')
-const controlPanelIcon = assetUrl('icons/control-panel.svg')
-const searchIcon = assetUrl('icons/search.svg')
-const powerIcon = assetUrl('icons/power.svg')
+const documentsIcon = xpIcon('documents')
+const controlPanelIcon = xpIcon('control-panel')
+const searchIcon = xpIcon('search')
+const powerIcon = xpIcon('power')
 
 const recentPrograms = windowsStore.windows.map((windowItem) => ({
   id: windowItem.id,

@@ -1,75 +1,36 @@
 <template>
   <div class="projects xp-window-frame">
-    <div class="xp-explorer-chrome">
-      <div class="xp-menu-row">
-        <span class="xp-menu-item">File</span>
-        <span class="xp-menu-item">Edit</span>
-        <span class="xp-menu-item">View</span>
-        <span class="xp-menu-item">Favorites</span>
-        <span class="xp-menu-item">Tools</span>
-        <span class="xp-menu-item">Help</span>
-      </div>
-      <div class="xp-toolbar-row">
-        <button class="xp-tool-btn back" @click="goBack">Back</button>
-        <button class="xp-tool-btn search" @click="focusAddress">Search</button>
-        <button class="xp-tool-btn folders">Folders</button>
-      </div>
-      <div class="xp-address-row">
-        <span class="xp-address-label">Address</span>
-        <div class="xp-suggest-wrapper">
-          <input
-            ref="addressRef"
-            v-model="address"
-            class="xp-address-input"
-            type="text"
-            @focus="showSuggestions = true"
-            @blur="hideSuggestionsSoon"
-            @keydown.down.prevent="moveSuggestion(1)"
-            @keydown.up.prevent="moveSuggestion(-1)"
-            @keydown.enter.prevent="handleEnter"
-            @keydown.tab.prevent="completeWithHighlighted"
-            @keydown.esc.prevent="showSuggestions = false"
-          />
-          <div v-if="showSuggestions && filteredSuggestions.length" class="xp-suggestions">
-            <div
-              v-for="(item, idx) in filteredSuggestions"
-              :key="item"
-              class="xp-suggestion-item"
-              :class="{ active: idx === selectedSuggestionIndex }"
-              @mouseenter="selectedSuggestionIndex = idx"
-              @mousedown.prevent="pickSuggestion(item)"
-            >
-              {{ item }}
-            </div>
-          </div>
-        </div>
-        <button class="xp-tool-btn go-btn" @click="runSearch">Go</button>
+    <ExplorerChrome
+      :address="address"
+      :suggestions="addressSuggestions"
+      :can-go-back="Boolean(previousAddress)"
+      @update:address="address = $event"
+      @back="goBack"
+      @go="runSearch"
+      @pick-suggestion="runSearch"
+    >
+      <template #toolbar-extras>
         <button class="xp-tool-btn xp-address-jump" @click="jumpToDocuments">Docs</button>
-      </div>
-    </div>
+      </template>
+      <template #sidebar>
+        <section class="xp-task-group">
+          <div class="xp-task-title">Project Tasks</div>
+          <ul>
+            <li><button class="xp-task-link" @click="focusFirstProject">Abrir demo detallada</button></li>
+            <li><button class="xp-task-link" @click="openFirstGithub">Ir al repositorio</button></li>
+            <li><button class="xp-task-link" @click="clearSearch">Ver stack tecnológico</button></li>
+          </ul>
+        </section>
 
-    <div class="xp-page-shell">
-    <aside class="xp-sidebar-panel">
-      <section class="xp-task-group">
-        <div class="xp-task-title">Project Tasks</div>
-        <ul>
-          <li><button class="xp-task-link" @click="focusFirstProject">Abrir demo detallada</button></li>
-          <li><button class="xp-task-link" @click="openFirstGithub">Ir al repositorio</button></li>
-          <li><button class="xp-task-link" @click="clearSearch">Ver stack tecnológico</button></li>
-        </ul>
-      </section>
-
-      <section class="xp-task-group">
-        <div class="xp-task-title">Other Places</div>
-        <ul>
-          <li>Mis Documentos</li>
-          <li>MSN Messenger</li>
-          <li>Music Studio</li>
-        </ul>
-      </section>
-    </aside>
-
-    <main class="xp-main-panel">
+        <section class="xp-task-group">
+          <div class="xp-task-title">Other Places</div>
+          <ul>
+            <li>Mis Documentos</li>
+            <li>MSN Messenger</li>
+            <li>Music Studio</li>
+          </ul>
+        </section>
+      </template>
       <p v-if="searchQuery" class="results-count">Resultados para "{{ searchQuery }}": {{ filteredProjects.length }}</p>
       <div class="projects-container">
       <div
@@ -121,13 +82,13 @@
         </div>
       </div>
       </div>
-    </main>
-    </div>
+    </ExplorerChrome>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import ExplorerChrome from '@/components/os/ExplorerChrome.vue'
 import { useWindowsStore } from '@/stores/windows'
 import { usePortfolioContent } from '@/composables/usePortfolioContent'
 import { buildAddressSuggestions, resolveWindowShortcut } from '@/utils/addressSuggestions'
@@ -176,9 +137,6 @@ const getChipStyle = (tech) => {
 const searchQuery = ref('')
 const address = ref('Internet Explorer\\Projects')
 const previousAddress = ref('')
-const addressRef = ref(null)
-const showSuggestions = ref(false)
-const selectedSuggestionIndex = ref(0)
 
 const addressSuggestions = computed(() => {
   const base = [
@@ -196,8 +154,6 @@ const addressSuggestions = computed(() => {
   const all = [...base, ...projectTerms]
   return buildAddressSuggestions(all, address.value, 8)
 })
-
-const filteredSuggestions = computed(() => addressSuggestions.value)
 
 const filteredProjects = computed(() => {
   if (!searchQuery.value.trim()) return projects.value
@@ -238,51 +194,6 @@ const clearSearch = () => {
   address.value = 'Internet Explorer\\Projects'
 }
 
-const focusAddress = async () => {
-  await nextTick()
-  addressRef.value?.focus()
-  addressRef.value?.select?.()
-}
-
-const moveSuggestion = (delta) => {
-  if (!filteredSuggestions.value.length) return
-  selectedSuggestionIndex.value =
-    (selectedSuggestionIndex.value + delta + filteredSuggestions.value.length) %
-    filteredSuggestions.value.length
-}
-
-const completeWithHighlighted = () => {
-  if (!showSuggestions.value || !filteredSuggestions.value.length) return
-  const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-  if (picked) {
-    address.value = picked
-  }
-}
-
-const pickSuggestion = (item) => {
-  address.value = item
-  showSuggestions.value = false
-  runSearch()
-}
-
-const handleEnter = () => {
-  if (showSuggestions.value && filteredSuggestions.value.length) {
-    const picked = filteredSuggestions.value[selectedSuggestionIndex.value]
-    if (picked) {
-      pickSuggestion(picked)
-      return
-    }
-  }
-
-  runSearch()
-}
-
-const hideSuggestionsSoon = () => {
-  window.setTimeout(() => {
-    showSuggestions.value = false
-  }, 100)
-}
-
 const jumpToDocuments = () => {
   windowsStore.openWindow('documents')
 }
@@ -314,7 +225,7 @@ const openFirstGithub = () => {
 .projects {
   height: 100%;
   font-family: 'MS Sans Serif', Arial, sans-serif;
-  background: linear-gradient(180deg, #eef4fd 0%, #dbe8fa 100%);
+  background: linear-gradient(180deg, #f6f9fe 0%, #e6effa 100%);
   padding: 8px;
 }
 
@@ -331,21 +242,20 @@ const openFirstGithub = () => {
 }
 
 .project-card {
-  background: linear-gradient(180deg, #fbfdff 0%, #e3ecf8 100%);
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+  border: 1px solid #9bb6d8;
   border-radius: 2px;
   display: flex;
   flex-direction: column;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.68);
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
   cursor: pointer;
 }
 
 .project-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  border-color: #ffffff #5679a4 #5679a4 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #e8f0fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.82), 0 2px 6px rgba(47, 84, 147, 0.14);
+  border-color: #7f9db9;
 }
 
 .card-thumbnail {
@@ -385,7 +295,8 @@ const openFirstGithub = () => {
   margin: 0;
   font-size: 13px;
   font-weight: bold;
-  border-bottom: 1px solid #808080;
+  color: #183d75;
+  border-bottom: 1px solid #a8bdd8;
   padding-bottom: 4px;
 }
 
@@ -419,9 +330,8 @@ const openFirstGithub = () => {
 .action-link {
   flex: 1;
   padding: 4px 8px;
-  background: linear-gradient(180deg, #fefefe 0%, #dfeaf8 100%);
-  border: 2px solid;
-  border-color: #ffffff #8ea8c9 #8ea8c9 #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #e4eef8 100%);
+  border: 1px solid #8ea8c9;
   text-decoration: none;
   color: #14355f;
   font-size: 11px;
@@ -431,11 +341,12 @@ const openFirstGithub = () => {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  transition: all 0.1s;
+  transition: background 0.1s ease, border-color 0.1s ease;
 }
 
 .action-link:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #ebf2fb 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #edf4fb 100%);
+  border-color: #7f9db9;
 }
 
 .action-link:active {

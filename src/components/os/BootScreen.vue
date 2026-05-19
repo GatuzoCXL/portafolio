@@ -6,12 +6,7 @@
 
       <div class="boot-content">
         <div class="xp-logo">
-          <div class="logo-flag">
-            <div class="flag-tl"></div>
-            <div class="flag-tr"></div>
-            <div class="flag-bl"></div>
-            <div class="flag-br"></div>
-          </div>
+          <img :src="logoImg" alt="Windows" class="logo-flag-img" />
           <div class="logo-text">
             <span class="logo-windows">Microsoft</span>
             <span class="logo-xp">Windows <em>XP</em></span>
@@ -31,7 +26,6 @@
         </div>
 
         <p class="boot-tagline">Edicion profesional</p>
-        
       </div>
 
       <div class="boot-bottom-glow"></div>
@@ -41,9 +35,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { xpIcon } from '@/utils/xpIcons'
 
 const props = defineProps({})
 defineEmits(['done'])
+
+const logoImg = xpIcon('windows-logo')
 
 const visible = ref(true)
 const totalBlocks = 12
@@ -134,20 +131,12 @@ onMounted(() => {
   gap: 18px;
 }
 
-.logo-flag {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  width: 52px;
-  height: 52px;
-  transform: perspective(100px) rotateY(-10deg);
+.logo-flag-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.15));
 }
-
-.flag-tl { background: #f25022; border-radius: 3px 0 0 0; }
-.flag-tr { background: #80ba01; border-radius: 0 3px 0 0; }
-.flag-bl { background: #00a4ef; border-radius: 0 0 0 3px; }
-.flag-br { background: #ffb902; border-radius: 0 0 3px 0; }
 
 .logo-text {
   display: flex;
